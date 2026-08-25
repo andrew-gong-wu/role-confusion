@@ -562,7 +562,8 @@ def plot_accuracy(selection) -> None:
 def write_checksums() -> None:
     rows = []
     for path in sorted(OUTPUT_DIR.rglob("*")):
-        if not path.is_file() or path.name == "sha256sums.txt":
+        # run-status.json changes once more from "checksumming" to "complete".
+        if not path.is_file() or path.name in {"sha256sums.txt", "run-status.json"}:
             continue
         digest = hashlib.sha256()
         with path.open("rb") as handle:
