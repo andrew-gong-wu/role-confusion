@@ -10,6 +10,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 REQUIRED_MODULES = (
     "torch",
@@ -24,6 +26,7 @@ REQUIRED_MODULES = (
 
 
 def main() -> int:
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
     versions = {}
     failed = []
     for name in REQUIRED_MODULES:

@@ -81,7 +81,7 @@ def main() -> None:
             )
             source = source.replace(
                 "load_dataset('allenai/c4', 'en', split = 'validation', streaming = True)",
-                "load_dataset('allenai/c4', 'en', split = 'validation', revision = C4_REVISION, streaming = True)",
+                "load_dataset('allenai/c4', data_dir = 'en', split = 'validation', revision = C4_REVISION, streaming = True)",
             )
 
         if "BATCH_SIZE = 32" in source:

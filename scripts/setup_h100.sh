@@ -49,11 +49,12 @@ uv pip install --python "$VENV_DIR/bin/python" \
   accelerate==1.12.0 \
   datasets \
   hf_transfer==0.1.9 \
-  kernels==0.11.5 \
+  kernels==0.16.0 \
   compressed-tensors==0.13.0 \
   tiktoken==0.12.0 \
   blobfile==3.1.0 \
-  pandas numpy scikit-learn plotly cupy-cuda12x \
+  zstandard \
+  pandas numpy scikit-learn==1.7.2 plotly cupy-cuda12x \
   python-dotenv packaging requests pyyaml tqdm termcolor \
   jupyterlab jupyter_server ipykernel ipywidgets nbformat notebook
 
