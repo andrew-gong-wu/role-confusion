@@ -54,7 +54,7 @@ uv pip install --python "$VENV_DIR/bin/python" \
   tiktoken==0.12.0 \
   blobfile==3.1.0 \
   zstandard \
-  pandas numpy scikit-learn==1.7.2 plotly cupy-cuda12x \
+  pandas numpy scikit-learn==1.7.2 matplotlib plotly cupy-cuda12x \
   python-dotenv packaging requests pyyaml tqdm termcolor \
   jupyterlab jupyter_server ipykernel ipywidgets nbformat notebook
 

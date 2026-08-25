@@ -42,6 +42,9 @@ Thumbs.db
 
 # Model, dataset, and experiment artifacts
 data/
+!data/
+data/*
+!data/gardening-conversation.yaml
 datasets/
 artifacts/
 outputs/
