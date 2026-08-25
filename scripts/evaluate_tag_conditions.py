@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import pickle
+import sys
 from pathlib import Path
 
 import cupy
@@ -17,6 +18,9 @@ from dotenv import load_dotenv
 from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 from demo.simple_test_helpers import (
     ReconstructableTextDataset,
     run_and_export_states,
@@ -24,7 +28,6 @@ from demo.simple_test_helpers import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
 
 MODEL_ID = "openai/gpt-oss-20b"
