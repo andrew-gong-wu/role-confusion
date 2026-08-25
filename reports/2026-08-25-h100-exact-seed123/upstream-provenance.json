@@ -1,0 +1,53 @@
+{
+  "commit": "ec333c40fd43fe991e1ebf66765051b6d7e35784",
+  "files": [
+    {
+      "bytes": 70237,
+      "path": "experiments/role-analysis/02-train-role-probes.ipynb",
+      "sha256": "e41c23aab908e9fb96971552743a0600ab2998fe82da76983ba3840a935082cc"
+    },
+    {
+      "bytes": 4606,
+      "path": "experiments/role-analysis/config/probe.yaml",
+      "sha256": "f836a25f81d6d762c5e2b54f68afa541c85f90143f055ecea91986b2fe01649d"
+    },
+    {
+      "bytes": 4155,
+      "path": "experiments/role-analysis/config/tomato.yaml",
+      "sha256": "3b9e3a055a764723ae1f0f32c5b0f98f458a4862f97b5bc9130387d22bb1cbff"
+    },
+    {
+      "bytes": 16578,
+      "path": "utils/chat_templates/gptoss.j2",
+      "sha256": "bcbbcd100a56ad723921990706697a40df73870d00f93746f00759f6f87994c9"
+    },
+    {
+      "bytes": 10900,
+      "path": "utils/role_templates.py",
+      "sha256": "9ad355060c0c397a56188af67c2b360ca5f54ab0dd8cfb10916385ca90f77b4b"
+    },
+    {
+      "bytes": 8021,
+      "path": "utils/pretrained_models/gptoss.py",
+      "sha256": "c10b8a6135ff532d16205b503f6c91b432ccfb34fa0bbd1af7c75f348b9cafc3"
+    }
+  ],
+  "upstream_probe_config": {
+    "n_sample_size": 250,
+    "nested_reasoning": false,
+    "seq_len": 1024,
+    "test_prefix": "<|startoftext|><|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2025-12-31\n\nReasoning: medium\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>",
+    "test_seperators": {
+      "tagged_start_sep": " ",
+      "untagged_role_sep": " ",
+      "untagged_start_sep": " "
+    },
+    "train_params": {
+      "C": 0.005,
+      "add_scaling": false
+    },
+    "train_prefixes": [
+      ""
+    ]
+  }
+}

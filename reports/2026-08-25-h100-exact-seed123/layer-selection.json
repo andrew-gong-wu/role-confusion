@@ -1,0 +1,7 @@
+{
+  "criterion": "maximum held-out neutral-text token accuracy only",
+  "paper_comparison_accuracy": 0.7054850930653929,
+  "paper_comparison_layer": 12,
+  "selected_accuracy": 0.8851369900620436,
+  "selected_layer": 16
+}
