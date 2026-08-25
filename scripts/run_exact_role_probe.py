@@ -279,6 +279,15 @@ def patch_pinned_masking_api(upstream_module) -> None:
     )
 
 
+def patch_pinned_model_api(model) -> None:
+    """Restore the per-layer attribute used by the pinned custom forward."""
+    layer_types = model.config.layer_types
+    if len(layer_types) != len(model.model.layers):
+        raise AssertionError("Unexpected GPT-OSS layer-type count")
+    for layer, attention_type in zip(model.model.layers, layer_types, strict=True):
+        layer.attention_type = attention_type
+
+
 def cupy_to_numpy(value):
     if hasattr(value, "get"):
         return value.get()
@@ -604,6 +613,7 @@ def main() -> None:
         attn_implementation="kernels-community/vllm-flash-attn3",
     ).to("cuda:0").eval()
     model.set_experts_implementation("eager")
+    patch_pinned_model_api(model)
     validate_pre_mlp_capture(model, tokenizer, upstream_gptoss.run_gptoss_return_topk)
 
     mark_phase("loading-neutral-data")
