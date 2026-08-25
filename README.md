@@ -100,6 +100,19 @@ or API key.
 Start with 10 sequences and batch size 1 as a smoke test. Restore the baseline
 only after the full pipeline works.
 
+After training, reproduce the gardening tag-conflict plot with:
+
+```bash
+python scripts/evaluate_tag_conditions.py
+```
+
+This evaluates the published conversation in `data/gardening-conversation.yaml`
+with correct tags, no tags, and the whole transcript wrapped in user tags. It
+saves token-level role probabilities, summaries, and a CoTness plot under the
+persistent output directory. Set `ROLE_PROBE_TAG_LAYER=16` for the strongest
+layer in our lightweight run; the paper's mid-layer plot corresponds to layer
+12.
+
 ## Important split distinction
 
 The upstream demo splits by `prompt_ix`, where every role-rendered copy has a

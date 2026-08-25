@@ -23,6 +23,30 @@ explain the late-layer decoding result here. The upstream-style split is not
 class-balanced by construction, which may contribute to its lower and noisier
 accuracy.
 
+## Correct, absent, and conflicting tags
+
+We also applied the trained probe to the authors' published gardening case
+study under three conditions: correct Harmony tags, no tags, and the complete
+conversation wrapped in a single user message. The plotted colors retain each
+passage's original semantic role even when its architectural tag is removed or
+changed.
+
+At layer 16, the probe assigns CoT-style passages mean CoT probabilities of
+0.945 with correct tags, 0.977 without tags, and 0.981 when everything is
+wrapped in user tags. This reproduces the post's qualitative result: reasoning
+style remains strongly represented in the probe direction when tags are absent
+or conflict with the text.
+
+![Layer-16 gardening tag-condition plot](tag-conditions-layer16/gardening-cotness-tag-conditions.png)
+
+The paper visualizes the middle layer (layer 12 for this model). Our reduced
+150-passage, 512-token probe is substantially weaker there: CoT-style means are
+0.492, 0.608, and 0.620 for the same three conditions. Consequently, layer 16
+is the clearer reproduction plot, but it must not be presented as an exact
+replication of the paper's layer-12 result. Both plots, token-level projection
+CSVs, summaries, and metadata are retained in `tag-conditions-layer12/` and
+`tag-conditions-layer16/`.
+
 ## Experiment settings
 
 - Upstream code snapshot: `ec333c40fd43fe991e1ebf66765051b6d7e35784`
@@ -91,7 +115,7 @@ only be loaded from this trusted experiment.
 ## Limitations and next checks
 
 This reproduces the authors' lightweight demonstration settings, not the full
-paper's hyperparameter search or all role-confusion plots. The result is a
-single seed. Next steps should include multiple seeds, confusion matrices and
-per-class metrics, followed by applying the trained probes to the controlled
-correct-tag, no-tag, and conflicting-tag conversations.
+paper's hyperparameter search. The result is a single seed. Next steps should
+include multiple seeds, confusion matrices and per-class metrics, then training
+the full 250-passage, 1024-token probe to test whether the published layer-12
+gardening values can be recovered.

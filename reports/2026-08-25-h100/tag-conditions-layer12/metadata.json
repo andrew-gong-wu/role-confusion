@@ -1,0 +1,11 @@
+{
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "probe_path": "/workspace/role-probe-storage/outputs/baseline-prompt-split/role-probes.pkl",
+  "layer": 12,
+  "conditions": [
+    "correct_tags",
+    "no_tags",
+    "all_user_tags"
+  ]
+}
