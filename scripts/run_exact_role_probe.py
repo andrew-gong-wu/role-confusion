@@ -32,6 +32,10 @@ from datasets import load_dataset
 from dotenv import load_dotenv
 from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers.masking_utils import (
+    create_causal_mask as current_create_causal_mask,
+    create_sliding_window_causal_mask as current_create_sliding_window_causal_mask,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -248,6 +252,30 @@ def validate_pre_mlp_capture(model, tokenizer, upstream_forward) -> None:
     write_json(
         OUTPUT_DIR / "pre-mlp-validation.json",
         {"logits_exact": True, "layers_exact": LAYERS, "capture": "post_attention_layernorm output"},
+    )
+
+
+def patch_pinned_masking_api(upstream_module) -> None:
+    """Adapt the pinned May-2026 masking call to Transformers 5.15.
+
+    The pinned forward passes ``input_embeds`` and ``cache_position``. Current
+    Transformers spells the former ``inputs_embeds`` and accepts position IDs
+    instead of cache positions. No masking semantics are changed.
+    """
+    def adapter(function):
+        def call(*, config, input_embeds, attention_mask, cache_position, past_key_values):
+            return function(
+                config=config,
+                inputs_embeds=input_embeds,
+                attention_mask=attention_mask,
+                past_key_values=past_key_values,
+                position_ids=cache_position.unsqueeze(0),
+            )
+        return call
+
+    upstream_module.create_causal_mask = adapter(current_create_causal_mask)
+    upstream_module.create_sliding_window_causal_mask = adapter(
+        current_create_sliding_window_causal_mask
     )
 
 
@@ -539,9 +567,10 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=False)
     require_pinned_upstream()
     record_upstream_provenance()
-    from utils.pretrained_models.gptoss import run_gptoss_return_topk
+    from utils.pretrained_models import gptoss as upstream_gptoss
     from utils.role_templates import load_chat_template, render_single_message
     from utils.substring_assignments import flag_message_types
+    patch_pinned_masking_api(upstream_gptoss)
 
     metadata = {
         "upstream_commit": UPSTREAM_COMMIT,
@@ -575,7 +604,7 @@ def main() -> None:
         attn_implementation="kernels-community/vllm-flash-attn3",
     ).to("cuda:0").eval()
     model.set_experts_implementation("eager")
-    validate_pre_mlp_capture(model, tokenizer, run_gptoss_return_topk)
+    validate_pre_mlp_capture(model, tokenizer, upstream_gptoss.run_gptoss_return_topk)
 
     mark_phase("loading-neutral-data")
     raw_data = load_raw_data()
@@ -633,4 +662,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as error:
+        if OUTPUT_DIR.exists():
+            mark_phase("failed", error=repr(error))
+        raise
