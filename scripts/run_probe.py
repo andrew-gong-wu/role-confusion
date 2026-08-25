@@ -57,6 +57,7 @@ def main() -> None:
     print(
         "Settings: "
         f"samples={os.environ.get('ROLE_PROBE_N_SAMPLES', '150')}, "
+        f"max_seqlen={os.environ.get('ROLE_PROBE_MAX_SEQLEN', '512')}, "
         f"batch={os.environ.get('ROLE_PROBE_BATCH_SIZE', '32')}, "
         f"split={os.environ.get('ROLE_PROBE_SPLIT_GROUP', 'prompt_ix')}",
         flush=True,

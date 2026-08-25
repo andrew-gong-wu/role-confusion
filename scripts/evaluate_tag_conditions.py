@@ -46,7 +46,11 @@ OUTPUT_DIR = Path(
         "ROLE_PROBE_TAG_OUTPUT_DIR", STORAGE_ROOT / "outputs/tag-conditions"
     )
 )
-LAYER = int(os.environ.get("ROLE_PROBE_TAG_LAYER", "12"))
+PLOT_LAYER = int(os.environ.get("ROLE_PROBE_TAG_LAYER", "12"))
+LAYERS = [
+    int(value)
+    for value in os.environ.get("ROLE_PROBE_TAG_LAYERS", str(PLOT_LAYER)).split(",")
+]
 ROLE_COLORS = {
     "user": "#3288bd",
     "cot": "#f39c12",
@@ -178,7 +182,7 @@ def main() -> None:
         tokenizer,
         run_model_return_states=run_gptoss_custom,
         dl=loader,
-        layers_to_keep_acts=[LAYER],
+        layers_to_keep_acts=LAYERS,
     )
     sample_df = outputs["sample_df"].assign(sample_ix=lambda frame: range(len(frame)))
     sample_df["condition"] = sample_df["prompt_ix"].map(dict(enumerate(conditions)))
@@ -192,21 +196,25 @@ def main() -> None:
 
     with PROBE_PATH.open("rb") as handle:
         probes = pickle.load(handle)
-    probe = next(item for item in probes if int(item["layer_ix"]) == LAYER)
     valid = sample_df[sample_df["original_role"].notna()].copy()
-    hidden = outputs["all_hs"][:, 0, :]
-    features = cupy.asarray(hidden[valid["sample_ix"].tolist(), :].to(torch.float32))
-    probabilities = cupy.asnumpy(probe["probe"].predict_proba(features))
-    probability_df = pd.DataFrame(probabilities, columns=probe["role_space"])
-    result = pd.concat(
-        [valid.reset_index(drop=True), probability_df.reset_index(drop=True)], axis=1
-    )
-    result["content_token_ix"] = result.groupby("condition").cumcount()
+    layer_results = []
+    for save_index, layer in enumerate(LAYERS):
+        probe = next(item for item in probes if int(item["layer_ix"]) == layer)
+        hidden = outputs["all_hs"][:, save_index, :]
+        features = cupy.asarray(hidden[valid["sample_ix"].tolist(), :].to(torch.float32))
+        probabilities = cupy.asnumpy(probe["probe"].predict_proba(features))
+        probability_df = pd.DataFrame(probabilities, columns=probe["role_space"])
+        layer_result = pd.concat(
+            [valid.reset_index(drop=True), probability_df.reset_index(drop=True)], axis=1
+        )
+        layer_results.append(layer_result.assign(layer_ix=layer))
+    result = pd.concat(layer_results, ignore_index=True)
+    result["content_token_ix"] = result.groupby(["layer_ix", "condition"]).cumcount()
     result.to_csv(OUTPUT_DIR / "gardening-role-projections.csv", index=False)
 
     summary = (
         result[result["original_role"].isin(ROLE_COLORS)]
-        .groupby(["condition", "original_role"], as_index=False)[probe["role_space"]]
+        .groupby(["layer_ix", "condition", "original_role"], as_index=False)[probe["role_space"]]
         .mean()
     )
     summary.to_csv(OUTPUT_DIR / "gardening-role-summary.csv", index=False)
@@ -219,7 +227,8 @@ def main() -> None:
     }
     for axis, condition in zip(axes, conditions, strict=True):
         frame = result[
-            (result["condition"] == condition)
+            (result["layer_ix"] == PLOT_LAYER)
+            & (result["condition"] == condition)
             & (result["original_role"].isin(ROLE_COLORS))
         ]
         for role, color in ROLE_COLORS.items():
@@ -240,7 +249,7 @@ def main() -> None:
         axis.grid(axis="y", alpha=0.2)
     axes[0].legend(title="Original role", ncol=3, loc="lower right")
     axes[-1].set_xlabel("Token position (system prompt omitted)")
-    fig.suptitle(f"gpt-oss-20b role perception under conflicting tag conditions (layer {LAYER})")
+    fig.suptitle(f"gpt-oss-20b role perception under conflicting tag conditions (layer {PLOT_LAYER})")
     fig.tight_layout()
     fig.savefig(OUTPUT_DIR / "gardening-cotness-tag-conditions.png", dpi=180)
     plt.close(fig)
@@ -249,7 +258,8 @@ def main() -> None:
         "model": MODEL_ID,
         "model_revision": MODEL_REVISION,
         "probe_path": str(PROBE_PATH),
-        "layer": LAYER,
+        "plot_layer": PLOT_LAYER,
+        "evaluated_layers": LAYERS,
         "conditions": conditions,
     }
     (OUTPUT_DIR / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")

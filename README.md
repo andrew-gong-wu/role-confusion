@@ -100,6 +100,17 @@ or API key.
 Start with 10 sequences and batch size 1 as a smoke test. Restore the baseline
 only after the full pipeline works.
 
+For the paper-sized training set, use 250 sequences, a maximum content length
+of 1,024, and reduce the H100 batch size to 16:
+
+```bash
+ROLE_PROBE_N_SAMPLES=250 \
+ROLE_PROBE_MAX_SEQLEN=1024 \
+ROLE_PROBE_BATCH_SIZE=16 \
+ROLE_PROBE_OUTPUT_DIR=/workspace/role-probe-storage/outputs/full-paper-size \
+python scripts/run_probe.py
+```
+
 After training, reproduce the gardening tag-conflict plot with:
 
 ```bash

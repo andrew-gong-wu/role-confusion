@@ -84,6 +84,14 @@ def main() -> None:
                 "load_dataset('allenai/c4', data_dir = 'en', split = 'validation', revision = C4_REVISION, streaming = True)",
             )
 
+        if "MAX_SEQLEN = 512" in source:
+            source = replace_once(
+                source,
+                "MAX_SEQLEN = 512",
+                "MAX_SEQLEN = int(os.environ.get('ROLE_PROBE_MAX_SEQLEN', '512'))",
+                "maximum sequence length",
+            )
+
         if "BATCH_SIZE = 32" in source:
             source = replace_once(
                 source,
