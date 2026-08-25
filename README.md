@@ -111,6 +111,71 @@ as a separate robustness check.
 High probe accuracy establishes linear decodability; it does not by itself show
 that the model causally uses the probe direction to follow instructions.
 
+## Proposed extension: role confusion and persona drift
+
+A natural next question is whether confusion about conversational role
+destabilizes the model's default Assistant persona. This connects the role
+probes in this repository with Lu et al.'s
+[*The Assistant Axis*](https://arxiv.org/abs/2601.10387), which identifies a
+direction in activation space measuring how much a model is operating in its
+default Assistant mode.
+
+The proposed causal hypothesis is:
+
+```text
+role confusion -> movement along the Assistant Axis -> persona drift or harmful behavior
+```
+
+This should be compared against alternatives in which architectural role and
+persona are independent, share a representation without a causal relationship,
+or respond separately to the same adversarial content.
+
+### Recommended first model
+
+Start with `Qwen/Qwen3-32B` and train new role probes for it, rather than first
+constructing an Assistant Axis for `gpt-oss-20b`. Lu et al. provide a
+precomputed Qwen3-32B Assistant Axis, persona vectors, and activation-capping
+settings in their
+[`assistant-axis` repository](https://github.com/safety-research/assistant-axis).
+Constructing a faithful new axis would additionally require generating and
+judging responses for a large collection of personas, extracting their
+activations, and validating the resulting direction behaviorally.
+
+The first Qwen experiment should use only the unambiguous architectural roles
+`system`, `user`, and `assistant`. Qwen's thinking region should not initially
+be treated as a separate architectural role analogous to GPT-OSS's Harmony
+analysis channel. The role-confusion upstream repository supports the related
+`Qwen3-30B-A3B`, so its full role-analysis workflow may provide useful Qwen
+rendering and token-labeling code, but the dense Qwen3-32B adaptation still
+needs to be validated.
+
+### Initial experiments
+
+1. Load the published Qwen3-32B Assistant Axis and reproduce basic projection
+   results with reasoning disabled.
+2. Render identical neutral passages under genuine system, user, and assistant
+   roles, keeping all copies of a passage in the same train/test group.
+3. Extract activations using exactly the same residual-stream location and
+   layer convention as the Assistant Axis implementation.
+4. Train linear role probes and also compute a simple architectural direction,
+   `mean(assistant) - mean(user)`, for direct geometric comparison with the
+   Assistant Axis.
+5. Measure cosine similarity, principal angles, cross-projection, and whether
+   either signal remains decodable after projecting out the other subspace.
+6. Apply role-confusion examples and test whether the role-confusion signal
+   precedes movement away from the Assistant end of the axis.
+7. Run a causal 2-by-2 intervention: role-representation repair on/off crossed
+   with Assistant-Axis activation capping on/off. This can distinguish an
+   upstream role-confusion mechanism from a downstream persona-drift mediator.
+
+For a first H100 run, use batch size 1, short passages, and layer 32, which Lu
+et al. designate as the Qwen3-32B target layer. Retain only selected layers and
+move saved activations to CPU promptly because the dense BF16 model leaves
+limited memory headroom on an 80 GB GPU.
+
+After establishing the result on Qwen3-32B, a smaller persona panel can be used
+to construct and validate a GPT-OSS Assistant Axis as a cross-model extension.
+
 ## Remote execution
 
 Follow [`docs/H100_RUNBOOK.md`](docs/H100_RUNBOOK.md) when compute is available.
