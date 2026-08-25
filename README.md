@@ -117,6 +117,13 @@ Follow [`docs/H100_RUNBOOK.md`](docs/H100_RUNBOOK.md) when compute is available.
 It covers SSH, persistent storage, installation, Jupyter tunneling, smoke tests,
 the baseline, result preservation, and stopping billing.
 
+To execute only the probe-training section without opening Jupyter or running
+the later API-backed attack cells:
+
+```bash
+/workspace/role-probe-storage/venv/bin/python scripts/run_probe.py
+```
+
 The pinned upstream snapshot has a dependency inconsistency: the notebook
 demands Transformers 5 while its setup script pins 4.57.5. The local H100 setup
 follows the notebook (`transformers>=5,<6`) and records the installed version.
