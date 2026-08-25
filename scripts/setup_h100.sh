@@ -11,12 +11,13 @@ if [[ -f "$PROJECT_DIR/.env" ]]; then
 fi
 
 STORAGE_ROOT="${ROLE_PROBE_STORAGE_ROOT:-/workspace/role-probe-storage}"
-VENV_DIR="${ROLE_PROBE_VENV_DIR:-${STORAGE_ROOT}/venv}"
+VENV_DIR="${ROLE_PROBE_VENV_DIR:-${PROJECT_DIR}/.venv}"
 HF_HOME="${HF_HOME:-${STORAGE_ROOT}/huggingface}"
-UV_CACHE_DIR="${UV_CACHE_DIR:-${STORAGE_ROOT}/uv-cache}"
+UV_CACHE_DIR="${UV_CACHE_DIR:-${PROJECT_DIR}/.uv-cache}"
 ROLE_PROBE_OUTPUT_DIR="${ROLE_PROBE_OUTPUT_DIR:-${STORAGE_ROOT}/outputs}"
 
 export HF_HOME UV_CACHE_DIR ROLE_PROBE_STORAGE_ROOT ROLE_PROBE_OUTPUT_DIR
+export UV_LINK_MODE="${UV_LINK_MODE:-copy}"
 export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-120}"
 
 if ! command -v nvidia-smi >/dev/null 2>&1; then
@@ -52,17 +53,14 @@ uv pip install --python "$VENV_DIR/bin/python" \
   compressed-tensors==0.13.0 \
   tiktoken==0.12.0 \
   blobfile==3.1.0 \
-  pandas numpy scikit-learn plotly \
+  pandas numpy scikit-learn plotly cupy-cuda12x \
   python-dotenv packaging requests pyyaml tqdm termcolor \
   jupyterlab jupyter_server ipykernel ipywidgets nbformat notebook
 
 uv pip install --python "$VENV_DIR/bin/python" \
-  libucx-cu12==1.18.1 ucx-py-cu12==0.45.0
-uv pip install --python "$VENV_DIR/bin/python" \
-  --extra-index-url https://pypi.nvidia.com \
-  "cudf-cu12==25.9.*" "cuml-cu12==25.9.*"
+  cudf-cu12==25.10.0 cuml-cu12==25.10.0
 
-"$VENV_DIR/bin/python" -m ipykernel install --user \
+"$VENV_DIR/bin/python" -m ipykernel install --prefix "$VENV_DIR" \
   --name role-probe \
   --display-name "Role probe (H100)"
 

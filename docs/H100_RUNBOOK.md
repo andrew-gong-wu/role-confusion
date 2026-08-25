@@ -47,15 +47,19 @@ Control-O, Enter, then exit with Control-X. Never commit `.env`.
 bash scripts/setup_h100.sh
 ```
 
-This installs into persistent storage, generates the adapted notebook, and runs
-CUDA diagnostics. Do not start the experiment unless the final output says
+This keeps the Python environment on the pod's fast local disk while putting
+the model cache, diagnostics, and results on persistent storage. It generates
+the adapted notebook and runs CUDA diagnostics. Do not start the experiment unless the final output says
 `H100 diagnostics passed.` Then activate the environment:
 
 ```bash
-source /workspace/role-probe-storage/venv/bin/activate
+source ~/role-confusion/.venv/bin/activate
 ```
 
-If the volume is mounted elsewhere, use the path printed by the setup script.
+The environment is intentionally disposable and can be rebuilt. Network
+volumes may return stale-file-handle errors when used for thousands of small
+package files; the expensive model download and experiment artifacts remain
+persistent.
 
 ## Run a cheap smoke test
 
@@ -121,4 +125,3 @@ from the directly comparable upstream-demo result.
 5. Stop/terminate the H100 in the dashboard or ask Cambria to do so.
 
 Closing Terminal or running `exit` does **not** necessarily stop billing.
-

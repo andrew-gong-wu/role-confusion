@@ -121,7 +121,7 @@ To execute only the probe-training section without opening Jupyter or running
 the later API-backed attack cells:
 
 ```bash
-/workspace/role-probe-storage/venv/bin/python scripts/run_probe.py
+./.venv/bin/python scripts/run_probe.py
 ```
 
 The pinned upstream snapshot has a dependency inconsistency: the notebook

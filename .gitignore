@@ -20,6 +20,7 @@ pip-wheel-metadata/
 
 # Virtual environments
 .venv/
+.uv-cache/
 venv/
 env/
 ENV/
@@ -61,4 +62,3 @@ mlruns/
 *.log
 tmp/
 temp/
-
