@@ -253,10 +253,10 @@ def class_centered_raw_weights(
     feature_scale: cupy.ndarray,
     n_classes: int,
 ) -> tuple[np.ndarray, np.ndarray]:
-    coef_standardized = base.cupy_to_numpy(classifier.coef_).astype(np.float32)
-    intercept_standardized = base.cupy_to_numpy(classifier.intercept_).astype(np.float32)
-    scale = base.cupy_to_numpy(feature_scale).astype(np.float32)
-    mean = base.cupy_to_numpy(feature_mean).astype(np.float32)
+    coef_standardized = base.to_numpy(classifier.coef_).astype(np.float32)
+    intercept_standardized = base.to_numpy(classifier.intercept_).astype(np.float32)
+    scale = base.to_numpy(feature_scale).astype(np.float32)
+    mean = base.to_numpy(feature_mean).astype(np.float32)
     if n_classes == 2:
         positive_weight = coef_standardized.reshape(-1) / scale
         positive_intercept = float(intercept_standardized.reshape(-1)[0]) - float(
@@ -314,7 +314,7 @@ def fit_probe(
         tol=1.0e-6,
     )
     classifier.fit(x_train, y_train)
-    predictions = base.cupy_to_numpy(classifier.predict(x_test)).astype(np.int32)
+    predictions = base.to_numpy(classifier.predict(x_test)).astype(np.int32)
     n_classes = len(class_names)
     weights, intercepts = class_centered_raw_weights(
         classifier, feature_mean, feature_scale, n_classes
