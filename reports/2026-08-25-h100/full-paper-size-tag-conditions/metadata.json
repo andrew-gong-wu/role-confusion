@@ -1,0 +1,19 @@
+{
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "probe_path": "/workspace/role-probe-storage/outputs/full-paper-size/role-probes.pkl",
+  "plot_layer": 12,
+  "evaluated_layers": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20
+  ],
+  "conditions": [
+    "correct_tags",
+    "no_tags",
+    "all_user_tags"
+  ]
+}

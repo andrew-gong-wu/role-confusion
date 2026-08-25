@@ -47,6 +47,38 @@ replication of the paper's layer-12 result. Both plots, token-level projection
 CSVs, summaries, and metadata are retained in `tag-conditions-layer12/` and
 `tag-conditions-layer16/`.
 
+## Paper-sized rerun
+
+We subsequently retrained with the paper's stated data scale: 250 base
+passages, 1,024 content tokens, and approximately 1,250 role-wrapped sequences.
+Batch size was reduced to 16. All other probe settings and the upstream-style
+`prompt_ix` split were retained.
+
+| Layer | Held-out accuracy | Correct-tag CoTness | No-tag CoTness | All-user-tag CoTness |
+|---:|---:|---:|---:|---:|
+| 0 | 0.164 | 0.307 | 0.267 | 0.266 |
+| 4 | 0.286 | 0.763 | 0.740 | 0.722 |
+| 8 | 0.737 | 0.840 | 0.881 | 0.894 |
+| 12 | 0.635 | 0.688 | 0.778 | 0.784 |
+| 16 | **0.844** | **0.943** | **0.971** | **0.976** |
+| 20 | 0.793 | 0.711 | 0.645 | 0.651 |
+
+Layer 16, not layer 12, is the best held-out classifier in this reproduction.
+The paper's layer-12 choice should therefore be interpreted as a fixed
+mid-layer measurement point, not as a claim that it maximizes classification
+accuracy. At layer 12, increasing the dataset size moves our condition means
+closer to the paper's reported 0.85, 0.83, and 0.85, but does not fully recover
+them.
+
+![Paper-sized layer-12 plot](full-paper-size-tag-conditions/gardening-cotness-tag-conditions.png)
+
+![Paper-sized layer-16 plot](full-paper-size-tag-layer16/gardening-cotness-tag-conditions.png)
+
+The full layer accuracy table is in `full-paper-size/probe-accuracy.csv`. The
+six-layer token projections and summaries are in
+`full-paper-size-tag-conditions/`; the serialized probes and executed notebook
+remain on persistent remote storage.
+
 ## Experiment settings
 
 - Upstream code snapshot: `ec333c40fd43fe991e1ebf66765051b6d7e35784`
