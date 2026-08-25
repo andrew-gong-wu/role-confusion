@@ -483,12 +483,12 @@ def main() -> None:
     per_class.to_csv(args.output_dir / "per-class-accuracy.csv", index=False)
     primary_heads = ["outer_role", "user_subtype", "assistant_subtype"]
     selection_frame = (
-        metrics[metrics.head.isin(primary_heads)]
+        metrics[metrics["head"].isin(primary_heads)]
         .groupby("layer_ix", as_index=False)
         .balanced_accuracy.mean()
         .rename(columns={"balanced_accuracy": "hierarchical_mean_balanced_accuracy"})
     )
-    flat_scores = metrics[metrics.head == "leaf_five_way"][
+    flat_scores = metrics[metrics["head"] == "leaf_five_way"][
         ["layer_ix", "balanced_accuracy"]
     ].rename(columns={"balanced_accuracy": "leaf_five_way_balanced_accuracy"})
     selection_frame = selection_frame.merge(flat_scores, on="layer_ix")
