@@ -1,0 +1,57 @@
+{
+  "activation": "pre-MLP (post_attention_layernorm output)",
+  "batch_size": 16,
+  "c4_revision": "f3b95a11ff318ce8b651afc7eb8e7bd2af469c10",
+  "classifier": {
+    "C": 0.005,
+    "linesearch_max_iter": 100,
+    "max_iter": 5000,
+    "scaling": false,
+    "type": "cuML L2 logistic regression"
+  },
+  "dolma_revision": "3a8349c",
+  "integer_allocation_note": "250 cannot be divided exactly 25/75; floor C4 and assign remainder to Dolma",
+  "layers": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22
+  ],
+  "max_content_tokens": 1024,
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "rendered_roles": [
+    "system",
+    "user",
+    "tool",
+    "cot",
+    "assistant"
+  ],
+  "requested_passages": 250,
+  "roles": [
+    "system",
+    "user",
+    "cot",
+    "assistant"
+  ],
+  "seed": 123,
+  "source_counts": {
+    "c4": 62,
+    "dolma3": 188
+  },
+  "source_fractions": {
+    "c4": 0.248,
+    "dolma3": 0.752
+  },
+  "split_group": "prompt_ix",
+  "test_size": 0.1,
+  "upstream_commit": "ec333c40fd43fe991e1ebf66765051b6d7e35784"
+}

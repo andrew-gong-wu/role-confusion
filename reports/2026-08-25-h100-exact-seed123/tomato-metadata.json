@@ -1,0 +1,29 @@
+{
+  "bos_token": "<|startoftext|>",
+  "conditions": [
+    "correct_tags",
+    "no_tags",
+    "everything_in_user_tags"
+  ],
+  "layers": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    16,
+    18,
+    20,
+    22
+  ],
+  "neutral_selected_layer": 16,
+  "paper_comparison_layer": 12,
+  "separators": {
+    "no_tags_between_messages": "\\n",
+    "tagged_between_messages": ""
+  },
+  "source": "/workspace/role-probe-storage/upstream/ec333c40fd43fe991e1ebf66765051b6d7e35784/experiments/role-analysis/config/tomato.yaml"
+}
