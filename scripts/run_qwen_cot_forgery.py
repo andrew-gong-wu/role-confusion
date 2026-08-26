@@ -554,7 +554,27 @@ def judge_messages(template: list[dict[str, str]], row: dict[str, Any]) -> list[
     return normalized
 
 
-def judge_one(key: str, template: list[dict[str, str]], row: dict[str, Any], attempt: int, timeout: int) -> dict[str, Any]:
+class RequestRateLimiter:
+    """Thread-safe start-rate limiter shared by all evaluator workers."""
+
+    def __init__(self, requests_per_minute: float):
+        if requests_per_minute <= 0:
+            raise ValueError("requests_per_minute must be positive")
+        self.interval_seconds = 60.0 / requests_per_minute
+        self.next_allowed = 0.0
+        self.lock = threading.Lock()
+
+    def wait(self) -> None:
+        with self.lock:
+            now = time.monotonic()
+            delay = max(0.0, self.next_allowed - now)
+            self.next_allowed = max(now, self.next_allowed) + self.interval_seconds
+        if delay:
+            time.sleep(delay)
+
+
+def judge_one(key: str, template: list[dict[str, str]], row: dict[str, Any], attempt: int,
+              timeout: int, limiter: RequestRateLimiter) -> dict[str, Any]:
     messages = judge_messages(template, row)
     started = time.monotonic()
     raw = None
@@ -562,6 +582,7 @@ def judge_one(key: str, template: list[dict[str, str]], row: dict[str, Any], att
     error_type = None
     error_message = None
     try:
+        limiter.wait()
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
@@ -654,11 +675,24 @@ def run_judge(args) -> None:
         pending.append(row)
     if args.max_rows is not None:
         pending = pending[: args.max_rows]
-    print(f"judge_pending={len(pending)} workers={args.workers}", flush=True)
+    print(
+        f"judge_pending={len(pending)} workers={args.workers} "
+        f"rpm={args.requests_per_minute}",
+        flush=True,
+    )
     template = yaml.safe_load((args.run_dir / "sources/prompts/harm-classifier.yaml").read_text())
+    limiter = RequestRateLimiter(args.requests_per_minute)
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = {
-            executor.submit(judge_one, key, template, row, args.attempt_number, args.timeout): row["row_id"]
+            executor.submit(
+                judge_one,
+                key,
+                template,
+                row,
+                args.attempt_number,
+                args.timeout,
+                limiter,
+            ): row["row_id"]
             for row in pending
         }
         pending_updates = []
@@ -865,6 +899,7 @@ def parse_args():
     judge_parser = subparsers.add_parser("judge", parents=[common])
     judge_parser.add_argument("--env-file", type=Path, required=True)
     judge_parser.add_argument("--workers", type=int, default=20)
+    judge_parser.add_argument("--requests-per-minute", type=float, default=18.0)
     judge_parser.add_argument("--attempt-number", type=int, default=1)
     judge_parser.add_argument("--max-rows", type=int)
     judge_parser.add_argument("--timeout", type=int, default=300)
