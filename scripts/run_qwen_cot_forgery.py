@@ -237,11 +237,11 @@ def base_generation_row(condition: dict[str, Any], attempt_number: int) -> dict[
         "completion_token_ids": None,
         "error_type": None,
         "error_message": None,
-        "probe_score_raw": None,
-        "probe_score_unnormalized_dot": None,
-        "probe_score_normalized": None,
-        "probe_scoring_status": "pending",
-        "probe_scoring_error": None,
+        "legacy_assistant_axis_response_projection_raw": None,
+        "legacy_assistant_axis_response_dot_unnormalized": None,
+        "legacy_assistant_axis_response_projection_z_pooled": None,
+        "legacy_assistant_axis_scoring_status": "pending",
+        "legacy_assistant_axis_scoring_error": None,
         "original_judge_label": None,
         "original_judge_status": "pending",
         "original_judge_raw_response": None,
@@ -318,7 +318,7 @@ def generate_batch(
                     "error_message": str(exc),
                     "completed_at_utc": utc_now(),
                     "elapsed_seconds": time.monotonic() - started,
-                    "probe_scoring_status": "not_possible",
+                    "legacy_assistant_axis_scoring_status": "not_possible",
                     "original_judge_status": "not_possible",
                 }
             )
@@ -458,18 +458,21 @@ def score_batch(model, tokenizer, axis: torch.Tensor, rows: list[dict[str, Any]]
         result = {"row_id": row["row_id"], "scored_at_utc": utc_now()}
         if not span:
             result.update(
-                {"probe_scoring_status": "error", "probe_scoring_error": "empty_assistant_span"}
+                {
+                    "legacy_assistant_axis_scoring_status": "error",
+                    "legacy_assistant_axis_scoring_error": "empty_assistant_span",
+                }
             )
         else:
             mean_activation = states[len(results), span, :].float().mean(dim=0)
             result.update(
                 {
-                    "probe_scoring_status": "success",
-                    "probe_scoring_error": None,
-                    "probe_score_raw": float(mean_activation @ ax_unit),
-                    "probe_score_unnormalized_dot": float(mean_activation @ ax_raw),
-                    "probe_scored_token_count": len(span),
-                    "probe_full_conversation_token_count": len(ids),
+                    "legacy_assistant_axis_scoring_status": "success",
+                    "legacy_assistant_axis_scoring_error": None,
+                    "legacy_assistant_axis_response_projection_raw": float(mean_activation @ ax_unit),
+                    "legacy_assistant_axis_response_dot_unnormalized": float(mean_activation @ ax_raw),
+                    "legacy_assistant_axis_response_token_count": len(span),
+                    "legacy_assistant_axis_full_conversation_token_count": len(ids),
                 }
             )
         results.append(result)
@@ -493,7 +496,7 @@ def run_score(args) -> None:
         row for row in all_rows
         if row.get("generation_status") == "success"
         and row.get("output") is not None
-        and row.get("probe_scoring_status") != "success"
+        and row.get("legacy_assistant_axis_scoring_status") != "success"
     ]
     if args.max_rows is not None:
         pending = pending[: args.max_rows]
@@ -506,7 +509,7 @@ def run_score(args) -> None:
     axis = torch.load(args.axis_path, map_location="cpu", weights_only=True)
     if tuple(axis.shape) != (64, 5120):
         raise RuntimeError(f"Unexpected axis shape {tuple(axis.shape)}")
-    ledger = args.run_dir / "probe-score-events.jsonl"
+    ledger = args.run_dir / "legacy-assistant-axis-score-events.jsonl"
     for start in range(0, len(pending), args.batch_size):
         batch = pending[start : start + args.batch_size]
         try:
@@ -515,8 +518,8 @@ def run_score(args) -> None:
             updates = [
                 {
                     "row_id": row["row_id"],
-                    "probe_scoring_status": "error",
-                    "probe_scoring_error": f"{type(exc).__name__}: {exc}",
+                    "legacy_assistant_axis_scoring_status": "error",
+                    "legacy_assistant_axis_scoring_error": f"{type(exc).__name__}: {exc}",
                     "scored_at_utc": utc_now(),
                 }
                 for row in batch
@@ -527,7 +530,7 @@ def run_score(args) -> None:
         merge_updates(dataset_path, updates)
         print(
             f"scored={min(start + len(batch), len(pending))}/{len(pending)} "
-            f"statuses={dict(Counter(x['probe_scoring_status'] for x in updates))}",
+            f"statuses={dict(Counter(x['legacy_assistant_axis_scoring_status'] for x in updates))}",
             flush=True,
         )
     del model
@@ -805,14 +808,18 @@ def run_finalize(args) -> None:
     dataset_path = args.run_dir / "dataset.jsonl"
     rows = reconcile_judge_results(args.run_dir, load_jsonl(dataset_path))
     scores = np.asarray(
-        [float(row["probe_score_raw"]) for row in rows if row.get("probe_score_raw") is not None],
+        [
+            float(row["legacy_assistant_axis_response_projection_raw"])
+            for row in rows
+            if row.get("legacy_assistant_axis_response_projection_raw") is not None
+        ],
         dtype=np.float64,
     )
     mean = float(scores.mean()) if len(scores) else None
     sd = float(scores.std(ddof=0)) if len(scores) else None
     for row in rows:
-        value = row.get("probe_score_raw")
-        row["probe_score_normalized"] = (
+        value = row.get("legacy_assistant_axis_response_projection_raw")
+        row["legacy_assistant_axis_response_projection_z_pooled"] = (
             (float(value) - mean) / sd
             if value is not None and mean is not None and sd not in (None, 0.0)
             else None
@@ -832,7 +839,8 @@ def run_finalize(args) -> None:
             writer.writerow({field: csv_safe(row.get(field)) for field in fields})
 
     review_fields = [
-        "row_id", "output", "probe_score_raw", "probe_score_normalized", "style",
+        "row_id", "output", "legacy_assistant_axis_response_projection_raw",
+        "legacy_assistant_axis_response_projection_z_pooled", "style",
         "qualifier_type", "question_category", "finish_reason", "hit_token_limit",
         "original_judge_label", "original_judge_status", "human_label",
         "human_label_confidence", "needs_adjudication", "final_jailbreak_label", "label_source",
@@ -876,14 +884,22 @@ def run_finalize(args) -> None:
         "counts_by_original_judge_status": counts("original_judge_status"),
         "counts_by_selected_judge_status": counts("selected_judge_status"),
         "rows_with_outputs": sum(row.get("output") is not None for row in rows),
-        "rows_with_probe_scores": len(scores),
+        "rows_with_legacy_assistant_axis_scores": len(scores),
         "rows_with_usable_original_labels": sum(row.get("original_judge_status") == "success" for row in rows),
         "rows_with_usable_selected_labels": sum(row.get("selected_judge_status") == "success" for row in rows),
         "rows_with_missing_labels": sum(row.get("final_jailbreak_label") is None for row in rows),
-        "normalization_mean": mean,
-        "normalization_population_sd": sd,
-        "normalized_observed_mean": float(np.mean([row["probe_score_normalized"] for row in rows if row.get("probe_score_normalized") is not None])) if len(scores) else None,
-        "normalized_observed_population_sd": float(np.std([row["probe_score_normalized"] for row in rows if row.get("probe_score_normalized") is not None], ddof=0)) if len(scores) else None,
+        "legacy_assistant_axis_response_projection_mean": mean,
+        "legacy_assistant_axis_response_projection_population_sd": sd,
+        "legacy_assistant_axis_normalized_observed_mean": float(np.mean([
+            row["legacy_assistant_axis_response_projection_z_pooled"]
+            for row in rows
+            if row.get("legacy_assistant_axis_response_projection_z_pooled") is not None
+        ])) if len(scores) else None,
+        "legacy_assistant_axis_normalized_observed_population_sd": float(np.std([
+            row["legacy_assistant_axis_response_projection_z_pooled"]
+            for row in rows
+            if row.get("legacy_assistant_axis_response_projection_z_pooled") is not None
+        ], ddof=0)) if len(scores) else None,
         "csv_multiline_output_roundtrip": roundtrip_ok,
         "adjudication_rows": len(adjudication),
         "validated_at_utc": utc_now(),
@@ -895,16 +911,17 @@ def run_finalize(args) -> None:
     metadata["status"] = "complete"
     metadata["end_timestamp_utc"] = utc_now()
     metadata["generation_parameters"] = GENERATION_PARAMETERS
-    metadata["normalization"].update(
-        {"mean": mean, "standard_deviation": sd, "ddof": 0}
-    )
+    normalization = metadata.pop("normalization", {})
+    normalization.update({"mean": mean, "standard_deviation": sd, "ddof": 0})
+    metadata["legacy_assistant_axis_response_projection_normalization"] = normalization
     write_json(metadata_path, metadata)
 
     final_names = [
         "dataset.jsonl", "dataset-full.csv", "human-review.csv",
         "adjudication-blinded.csv", "run-metadata.json", "validation-report.json",
         "experimental-manifest.jsonl", "policies.jsonl", "policies.csv",
-        "policy-attempts.jsonl", "judge-attempts.jsonl", "probe-score-events.jsonl",
+        "policy-attempts.jsonl", "judge-attempts.jsonl",
+        "legacy-assistant-axis-score-events.jsonl",
     ]
     checksum_rows = []
     for name in final_names:
@@ -940,8 +957,12 @@ def smoke(args) -> None:
         "max_new_tokens": args.max_new_tokens,
         "statuses": dict(Counter(row["generation_status"] for row in rows)),
         "completion_lengths": [row["completion_token_count"] for row in rows],
-        "score_statuses": dict(Counter(row["probe_scoring_status"] for row in score_updates)),
-        "score_token_counts": [row.get("probe_scored_token_count") for row in score_updates],
+        "score_statuses": dict(Counter(
+            row["legacy_assistant_axis_scoring_status"] for row in score_updates
+        )),
+        "score_token_counts": [
+            row.get("legacy_assistant_axis_response_token_count") for row in score_updates
+        ],
         "peak_gpu_gib": torch.cuda.max_memory_allocated() / 2**30,
         "timestamp_utc": utc_now(),
     }
