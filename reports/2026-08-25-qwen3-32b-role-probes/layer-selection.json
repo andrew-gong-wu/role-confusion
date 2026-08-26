@@ -1,0 +1,5 @@
+{
+  "criterion": "maximum held-out neutral-text token accuracy; lower layer breaks ties",
+  "selected_accuracy": 0.3570295416541611,
+  "selected_layer": 48
+}

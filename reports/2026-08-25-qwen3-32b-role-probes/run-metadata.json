@@ -1,0 +1,19 @@
+{
+  "activation_site": "decoder layer output (residual stream after the full block)",
+  "assistant_axis": "/root/role-confusion-qwen3-32b-assistant-axis-20260825-ready/axis/assistant_axis.pt",
+  "classifier": {
+    "C": 0.005,
+    "max_iter": 5000,
+    "penalty": "l2",
+    "test_size_by_prompt": 0.1,
+    "type": "cuML multinomial logistic regression"
+  },
+  "criterion": "maximum held-out neutral-text token accuracy; lower layer breaks ties",
+  "extraction_gpu_peak_gib": 61.43273591995239,
+  "model": "/root/role-confusion-qwen3-32b-assistant-axis-20260825-ready/model",
+  "neutral_passages": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/neutral-passages.jsonl.gz",
+  "role_vector_centering": "subtract mean coefficient vector across the five softmax classes",
+  "seed": 123,
+  "selected_accuracy": 0.3570295416541611,
+  "selected_layer": 48
+}

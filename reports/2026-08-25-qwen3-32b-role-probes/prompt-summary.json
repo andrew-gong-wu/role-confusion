@@ -1,0 +1,37 @@
+{
+  "layers": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60
+  ],
+  "n_content_tokens": 723356,
+  "n_passages": 250,
+  "n_prompts": 1250,
+  "roles": [
+    "system",
+    "user",
+    "tool",
+    "cot",
+    "assistant"
+  ],
+  "wrappers": {
+    "assistant": "<|im_start|>assistant\nTOKENTEST<|im_end|>\n",
+    "cot": "<|im_start|>assistant\n<think>\nTOKENTEST\n</think>\n<|im_end|>\n",
+    "system": "<|im_start|>system\nTOKENTEST<|im_end|>\n",
+    "tool": "<|im_start|>user\n<tool_response>\nTOKENTEST\n</tool_response><|im_end|>\n",
+    "user": "<|im_start|>user\nTOKENTEST<|im_end|>\n"
+  }
+}
