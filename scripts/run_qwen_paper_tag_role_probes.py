@@ -275,8 +275,10 @@ def train_probes(
         }
     )
     split_frame.to_csv(output_dir / "prompt-split.csv", index=False)
-    y_train = cupy.asarray(metadata["labels"][train_ix])
-    y_heldout = cupy.asarray(metadata["labels"][heldout_ix])
+    # cuML's classifier accepts int16 labels, but its log_loss implementation
+    # requires int32/int64.  Use one dtype consistently for both operations.
+    y_train = cupy.asarray(metadata["labels"][train_ix], dtype=cupy.int32)
+    y_heldout = cupy.asarray(metadata["labels"][heldout_ix], dtype=cupy.int32)
 
     tuning_layer = layers[(len(layers) - 1) // 2]
     tuning_save_ix = layers.index(tuning_layer)
