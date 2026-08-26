@@ -188,6 +188,11 @@ def conditions_for_attempt(
         by_condition.setdefault(row["condition_id"], []).append(row)
     selected = []
     for condition in manifest:
+        # Policy generation is an upstream dependency, not a target-model
+        # attempt. Leave missing-policy conditions pending until the manifest
+        # is rebuilt after a successful policy retry.
+        if not condition.get("prompt"):
+            continue
         previous = by_condition.get(condition["condition_id"], [])
         if any(int(row["attempt_number"]) == attempt_number for row in previous):
             continue
