@@ -1,0 +1,39 @@
+{
+  "base_sequences": 250,
+  "filler_max_tokens": 512,
+  "layers": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60
+  ],
+  "max_target_tokens": 1024,
+  "nested_reasoning_control": "variable neutral filler in assistant thought; matching filler before tags for other roles",
+  "paper": "Ye, Cui, and Hadfield-Menell (2026), arXiv:2603.12277v6, Appendix G",
+  "rendered_sequences": 747,
+  "roles": [
+    "user",
+    "assistant",
+    "tool"
+  ],
+  "seed": 123,
+  "skip_first_n_content_tokens": 32,
+  "source_counts": {
+    "c4": 62,
+    "dolma3": 188
+  },
+  "target_content_tokens": 410064,
+  "training_tokens": "target content only; tags and filler excluded"
+}

@@ -8,9 +8,12 @@ neutral filler inside the thought preceding final-answer content, and matching
 filler is prepended before the role tags for every other role.  Filler and tag
 states are discarded; only target-content states train the probe.
 
-The five-way multinomial probe is trained at decoder-block outputs so its
-coefficients occupy the same 5,120-dimensional coordinates as the downloaded
-Qwen3-32B assistant-persona axis.  No text generation is performed.
+By default the script fits the paper's five roles.  ``--roles`` can select a
+paper-supported subset (for example, user/assistant/tool) and fits a fresh
+multinomial probe in that role space.  Probes are trained at decoder-block
+outputs so their coefficients occupy the same 5,120-dimensional coordinates
+as the downloaded Qwen3-32B assistant-persona axis.  No text generation is
+performed.
 """
 
 from __future__ import annotations
@@ -38,8 +41,7 @@ import run_qwen_role_probe_cosines as base
 
 
 SEED = 123
-ROLES = ["system", "user", "tool", "cot", "assistant"]
-ROLE_TO_INDEX = {role: index for index, role in enumerate(ROLES)}
+ALL_ROLES = ["system", "user", "tool", "cot", "assistant"]
 LAYERS = list(range(0, 64, 4))
 MAX_TARGET_TOKENS = 1024
 EXPECTED_BASE_SEQUENCES = 250
@@ -72,6 +74,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--layers", type=int, nargs="+", default=LAYERS)
+    parser.add_argument(
+        "--roles",
+        nargs="+",
+        choices=ALL_ROLES,
+        default=ALL_ROLES,
+        help="Role subset and class order for a freshly fitted multinomial probe.",
+    )
+    parser.add_argument(
+        "--skip-first-n",
+        type=int,
+        default=0,
+        help="Discard this many initial content tokens per rendered sequence.",
+    )
+    parser.add_argument(
+        "--fixed-c",
+        type=float,
+        help="Use a fixed logistic-regression C instead of running the grid search.",
+    )
     parser.add_argument("--smoke-only", action="store_true")
     return parser.parse_args()
 
@@ -137,6 +157,8 @@ def render_role(role: str, target: str, filler: str) -> tuple[str, int, int]:
 def build_prompts(
     tokenizer,
     passages: list[dict[str, object]],
+    roles: list[str],
+    skip_first_n: int,
 ) -> tuple[list[dict[str, object]], pd.DataFrame]:
     if len(passages) != EXPECTED_BASE_SEQUENCES:
         raise AssertionError(
@@ -162,7 +184,9 @@ def build_prompts(
             tokenizer(filler, add_special_tokens=False).input_ids
         ) if filler else 0
         role_targets: dict[str, str] = {}
-        for role in ROLES:
+        manifest_start = len(manifest_rows)
+        role_to_index = {role: index for index, role in enumerate(roles)}
+        for role in roles:
             rendered, target_start, target_end = render_role(role, target, filler)
             encoded = tokenizer(
                 rendered,
@@ -177,24 +201,30 @@ def build_prompts(
             ]
             if not target_token_indices:
                 raise RuntimeError(f"No target tokens for base {base_ix}, role {role}")
-            content_mask = [False] * len(encoded.input_ids)
-            for token_ix in target_token_indices:
-                content_mask[token_ix] = True
             reconstructed = tokenizer.decode(
                 [encoded.input_ids[index] for index in target_token_indices],
                 skip_special_tokens=False,
             )
             role_targets[role] = reconstructed
+            retained_token_indices = target_token_indices[skip_first_n:]
+            if not retained_token_indices:
+                # The authors apply the position cutoff after token labeling, so
+                # short rendered prompts simply contribute no rows to the probe.
+                prompt_ix += 1
+                continue
+            content_mask = [False] * len(encoded.input_ids)
+            for token_ix in retained_token_indices:
+                content_mask[token_ix] = True
             prompts.append(
                 {
                     "prompt_ix": prompt_ix,
                     "passage_ix": int(passage["passage_ix"]),
                     "source": str(passage["source"]),
                     "role": role,
-                    "role_ix": ROLE_TO_INDEX[role],
+                    "role_ix": role_to_index[role],
                     "input_ids": encoded.input_ids,
                     "content_mask": content_mask,
-                    "n_content": len(target_token_indices),
+                    "n_content": len(retained_token_indices),
                 }
             )
             manifest_rows.append(
@@ -205,8 +235,10 @@ def build_prompts(
                     "source": str(passage["source"]),
                     "role": role,
                     "target_sha256": target_digest,
-                    "target_tokens": len(target_token_indices),
-                    "target_start_token_ix": min(target_token_indices),
+                    "target_tokens_total": len(target_token_indices),
+                    "target_tokens": len(retained_token_indices),
+                    "skipped_initial_content_tokens": skip_first_n,
+                    "target_start_token_ix": min(retained_token_indices),
                     "rendered_tokens": len(encoded.input_ids),
                     "filler_tokens": filler_token_count,
                 }
@@ -216,10 +248,10 @@ def build_prompts(
             # Context-sensitive boundary tokenization may alter the decoded edge token.
             # The original target string and digest remain exactly paired across roles;
             # record this explicitly rather than silently claiming token identity.
-            for row in manifest_rows[-len(ROLES):]:
+            for row in manifest_rows[manifest_start:]:
                 row["decoded_target_tokens_match"] = False
         else:
-            for row in manifest_rows[-len(ROLES):]:
+            for row in manifest_rows[manifest_start:]:
                 row["decoded_target_tokens_match"] = True
     return prompts, pd.DataFrame(manifest_rows)
 
@@ -262,7 +294,9 @@ def train_probes(
     activations: torch.Tensor,
     metadata: dict[str, np.ndarray],
     layers: list[int],
+    roles: list[str],
     output_dir: Path,
+    fixed_c: float | None,
 ) -> tuple[np.ndarray, np.ndarray, pd.DataFrame, pd.DataFrame, float]:
     train_prompt_ids, heldout_prompt_ids = prompt_split(metadata["prompt_ids"])
     train_ix = np.flatnonzero(np.isin(metadata["prompt_ids"], train_prompt_ids))
@@ -280,34 +314,43 @@ def train_probes(
     y_train = cupy.asarray(metadata["labels"][train_ix], dtype=cupy.int32)
     y_heldout = cupy.asarray(metadata["labels"][heldout_ix], dtype=cupy.int32)
 
-    tuning_layer = layers[(len(layers) - 1) // 2]
-    tuning_save_ix = layers.index(tuning_layer)
-    x_train = cupy.asarray(activations[train_ix, tuning_save_ix, :].float().numpy())
-    x_heldout = cupy.asarray(activations[heldout_ix, tuning_save_ix, :].float().numpy())
-    tuning_rows = []
-    for c_value in PAPER_C_GRID:
-        started = time.time()
-        classifier, accuracy, nll, _ = fit_one(
-            x_train, y_train, x_heldout, y_heldout, c_value
+    if fixed_c is not None:
+        if fixed_c <= 0:
+            raise ValueError("--fixed-c must be positive")
+        selected_c = float(fixed_c)
+        pd.DataFrame([{"C": selected_c, "selection": "fixed"}]).to_csv(
+            output_dir / "regularization-grid.csv", index=False
         )
-        tuning_rows.append({"layer_ix": tuning_layer, "C": c_value, "accuracy": accuracy, "nll": nll})
-        print(
-            f"C grid layer {tuning_layer}: C={c_value:g}, accuracy={accuracy:.6f}, "
-            f"nll={nll:.6f}, minutes={(time.time() - started) / 60:.1f}",
-            flush=True,
-        )
-        del classifier
+        print(f"Using fixed C={selected_c:g}", flush=True)
+    else:
+        tuning_layer = layers[(len(layers) - 1) // 2]
+        tuning_save_ix = layers.index(tuning_layer)
+        x_train = cupy.asarray(activations[train_ix, tuning_save_ix, :].float().numpy())
+        x_heldout = cupy.asarray(activations[heldout_ix, tuning_save_ix, :].float().numpy())
+        tuning_rows = []
+        for c_value in PAPER_C_GRID:
+            started = time.time()
+            classifier, accuracy, nll, _ = fit_one(
+                x_train, y_train, x_heldout, y_heldout, c_value
+            )
+            tuning_rows.append({"layer_ix": tuning_layer, "C": c_value, "accuracy": accuracy, "nll": nll})
+            print(
+                f"C grid layer {tuning_layer}: C={c_value:g}, accuracy={accuracy:.6f}, "
+                f"nll={nll:.6f}, minutes={(time.time() - started) / 60:.1f}",
+                flush=True,
+            )
+            del classifier
+            cupy.get_default_memory_pool().free_all_blocks()
+            gc.collect()
+        del x_train, x_heldout
         cupy.get_default_memory_pool().free_all_blocks()
-        gc.collect()
-    del x_train, x_heldout
-    cupy.get_default_memory_pool().free_all_blocks()
-    tuning = pd.DataFrame(tuning_rows)
-    tuning.to_csv(output_dir / "regularization-grid.csv", index=False)
-    selected_c = float(tuning.sort_values(["nll", "C"], ascending=[True, True]).iloc[0].C)
-    print(f"Selected C={selected_c:g} by minimum held-out NLL at layer {tuning_layer}", flush=True)
+        tuning = pd.DataFrame(tuning_rows)
+        tuning.to_csv(output_dir / "regularization-grid.csv", index=False)
+        selected_c = float(tuning.sort_values(["nll", "C"], ascending=[True, True]).iloc[0].C)
+        print(f"Selected C={selected_c:g} by minimum held-out NLL at layer {tuning_layer}", flush=True)
 
-    coefficients = np.empty((len(layers), len(ROLES), activations.shape[-1]), dtype=np.float32)
-    intercepts = np.empty((len(layers), len(ROLES)), dtype=np.float32)
+    coefficients = np.empty((len(layers), len(roles), activations.shape[-1]), dtype=np.float32)
+    intercepts = np.empty((len(layers), len(roles)), dtype=np.float32)
     metric_rows = []
     per_class_rows = []
     heldout_truth = base.to_numpy(y_heldout).astype(np.int16)
@@ -323,7 +366,7 @@ def train_probes(
         coefficients[save_ix] = raw_coef - raw_coef.mean(axis=0, keepdims=True)
         intercepts[save_ix] = raw_intercept - raw_intercept.mean()
         recalls = []
-        for role_ix, role in enumerate(ROLES):
+        for role_ix, role in enumerate(roles):
             mask = heldout_truth == role_ix
             recall = float((predictions[mask] == role_ix).mean())
             recalls.append(recall)
@@ -368,6 +411,11 @@ def main() -> None:
         raise FileExistsError(f"Refusing to alter existing path: {args.output_dir}")
     args.output_dir.mkdir(parents=True)
     layers = sorted(set(args.layers))
+    roles = list(dict.fromkeys(args.roles))
+    if len(roles) < 2:
+        raise ValueError("A multinomial role probe requires at least two distinct roles")
+    if args.skip_first_n < 0:
+        raise ValueError("--skip-first-n cannot be negative")
     if any(layer < 0 or layer >= 64 for layer in layers):
         raise ValueError(f"Invalid Qwen3-32B layer list: {layers}")
 
@@ -375,7 +423,9 @@ def main() -> None:
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     passages = base.load_passages(args.passages, None)
-    prompts, prompt_manifest = build_prompts(tokenizer, passages)
+    prompts, prompt_manifest = build_prompts(
+        tokenizer, passages, roles, args.skip_first_n
+    )
     prompt_manifest.to_csv(args.output_dir / "prompt-manifest.csv", index=False)
     prompt_summary = {
         "paper": "Ye, Cui, and Hadfield-Menell (2026), arXiv:2603.12277v6, Appendix G",
@@ -383,13 +433,14 @@ def main() -> None:
         "base_sequences": len(passages),
         "rendered_sequences": len(prompts),
         "source_counts": dict(Counter(str(row["source"]) for row in passages)),
-        "roles": ROLES,
+        "roles": roles,
         "max_target_tokens": MAX_TARGET_TOKENS,
         "filler_max_tokens": FILLER_MAX_TOKENS,
         "target_content_tokens": sum(int(row["n_content"]) for row in prompts),
         "layers": layers,
         "nested_reasoning_control": "variable neutral filler in assistant thought; matching filler before tags for other roles",
         "training_tokens": "target content only; tags and filler excluded",
+        "skip_first_n_content_tokens": args.skip_first_n,
     }
     base.write_json(args.output_dir / "prompt-summary.json", prompt_summary)
     print(json.dumps(prompt_summary, indent=2), flush=True)
@@ -414,7 +465,7 @@ def main() -> None:
     torch.cuda.empty_cache()
 
     coefficients, intercepts, metrics, per_class, selected_c = train_probes(
-        activations, metadata, layers, args.output_dir
+        activations, metadata, layers, roles, args.output_dir, args.fixed_c
     )
     metrics.to_csv(args.output_dir / "probe-accuracy.csv", index=False)
     per_class.to_csv(args.output_dir / "per-class-accuracy.csv", index=False)
@@ -427,14 +478,14 @@ def main() -> None:
         raise AssertionError(f"Unexpected assistant-axis shape: {tuple(assistant_axis.shape)}")
     persona_vector = assistant_axis[selected_layer].float().numpy()
     role_vectors = coefficients[selected_save_ix]
-    labels = ["persona_assistant_axis"] + [f"role_{role}" for role in ROLES]
+    labels = ["persona_assistant_axis"] + [f"role_{role}" for role in roles]
     vectors = np.concatenate([persona_vector[None, :], role_vectors], axis=0)
     similarities = base.cosine_matrix(vectors)
 
     np.savez_compressed(
         args.output_dir / "all-layer-paper-role-probe-vectors.npz",
         layers=np.asarray(layers, dtype=np.int16),
-        roles=np.asarray(ROLES),
+        roles=np.asarray(roles),
         coefficients_centered=coefficients,
         intercepts_centered=intercepts,
     )
@@ -473,11 +524,15 @@ def main() -> None:
             "assistant_axis": str(args.axis),
             "neutral_passages": str(args.passages),
             "activation_site": "decoder layer output (residual stream after the full block)",
-            "classifier": "cuML multinomial logistic regression, L2, no feature scaling",
-            "regularization_grid": PAPER_C_GRID,
-            "regularization_selection": "minimum held-out NLL at the middle probed layer",
+            "classifier": f"cuML {len(roles)}-way multinomial logistic regression, L2, no feature scaling",
+            "regularization_grid": PAPER_C_GRID if args.fixed_c is None else None,
+            "regularization_selection": (
+                "minimum held-out NLL at the middle probed layer"
+                if args.fixed_c is None
+                else "fixed by command line"
+            ),
             "split": "seeded 90/10 rendered-prompt split matching the published notebook",
-            "role_vector_centering": "subtract mean coefficient across five multinomial classes",
+            "role_vector_centering": f"subtract mean coefficient across {len(roles)} multinomial classes",
             "extraction_gpu_peak_gib": extraction_peak_gib,
         },
     )
