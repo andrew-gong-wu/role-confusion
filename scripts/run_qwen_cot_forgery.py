@@ -701,18 +701,43 @@ def run_judge(args) -> None:
             append_jsonl(ledger, result)
             update = {
                 "row_id": result["row_id"],
-                "original_judge_label": result["judge_label"],
-                "original_judge_status": result["judge_status"],
-                "original_judge_raw_response": result["raw_response"],
-                "original_judge_text": result["judge_text"],
-                "original_judge_finish_reason": result["finish_reason"],
+                "latest_judge_attempt_number": result["attempt_number"],
+                "latest_judge_label": result["judge_label"],
+                "latest_judge_status": result["judge_status"],
                 "needs_adjudication": result["judge_status"] != "success",
                 "final_jailbreak_label": (
                     result["judge_label"] == "HARMFUL_RESPONSE"
                     if result["judge_status"] == "success" else None
                 ),
-                "label_source": "original_judge" if result["judge_status"] == "success" else None,
+                "label_source": (
+                    "original_judge"
+                    if result["judge_status"] == "success" and result["attempt_number"] == 1
+                    else f"judge_retry_attempt_{result['attempt_number']}"
+                    if result["judge_status"] == "success"
+                    else None
+                ),
             }
+            if result["attempt_number"] == 1:
+                update.update(
+                    {
+                        "original_judge_label": result["judge_label"],
+                        "original_judge_status": result["judge_status"],
+                        "original_judge_raw_response": result["raw_response"],
+                        "original_judge_text": result["judge_text"],
+                        "original_judge_finish_reason": result["finish_reason"],
+                    }
+                )
+            if result["judge_status"] == "success":
+                update.update(
+                    {
+                        "selected_judge_attempt_number": result["attempt_number"],
+                        "selected_judge_label": result["judge_label"],
+                        "selected_judge_status": result["judge_status"],
+                        "selected_judge_raw_response": result["raw_response"],
+                        "selected_judge_text": result["judge_text"],
+                        "selected_judge_finish_reason": result["finish_reason"],
+                    }
+                )
             pending_updates.append(update)
             if len(pending_updates) >= 20 or completed == len(futures):
                 merge_updates(dataset_path, pending_updates)
@@ -730,9 +755,55 @@ def csv_safe(value: Any) -> Any:
     return value
 
 
+def reconcile_judge_results(run_dir: Path, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Derive immutable original and first-success judge fields from the attempt ledger."""
+    attempts_by_row: dict[str, list[dict[str, Any]]] = {}
+    for attempt in load_jsonl(run_dir / "judge-attempts.jsonl"):
+        attempts_by_row.setdefault(attempt["row_id"], []).append(attempt)
+    for row in rows:
+        attempts = sorted(
+            attempts_by_row.get(row["row_id"], []),
+            key=lambda item: (int(item["attempt_number"]), item["completed_at_utc"]),
+        )
+        original = attempts[0] if attempts else None
+        selected = next(
+            (item for item in attempts if item.get("judge_status") == "success"),
+            None,
+        )
+        row.update(
+            {
+                "judge_attempt_count": len(attempts),
+                "judge_attempt_statuses": [item.get("judge_status") for item in attempts],
+                "original_judge_label": original.get("judge_label") if original else None,
+                "original_judge_status": original.get("judge_status") if original else None,
+                "original_judge_raw_response": original.get("raw_response") if original else None,
+                "original_judge_text": original.get("judge_text") if original else None,
+                "original_judge_finish_reason": original.get("finish_reason") if original else None,
+                "selected_judge_attempt_number": selected.get("attempt_number") if selected else None,
+                "selected_judge_label": selected.get("judge_label") if selected else None,
+                "selected_judge_status": selected.get("judge_status") if selected else None,
+                "selected_judge_raw_response": selected.get("raw_response") if selected else None,
+                "selected_judge_text": selected.get("judge_text") if selected else None,
+                "selected_judge_finish_reason": selected.get("finish_reason") if selected else None,
+                "needs_adjudication": selected is None,
+                "final_jailbreak_label": (
+                    selected.get("judge_label") == "HARMFUL_RESPONSE" if selected else None
+                ),
+                "label_source": (
+                    "original_judge"
+                    if selected and int(selected["attempt_number"]) == 1
+                    else f"judge_retry_attempt_{selected['attempt_number']}"
+                    if selected
+                    else None
+                ),
+            }
+        )
+    return rows
+
+
 def run_finalize(args) -> None:
     dataset_path = args.run_dir / "dataset.jsonl"
-    rows = load_jsonl(dataset_path)
+    rows = reconcile_judge_results(args.run_dir, load_jsonl(dataset_path))
     scores = np.asarray(
         [float(row["probe_score_raw"]) for row in rows if row.get("probe_score_raw") is not None],
         dtype=np.float64,
@@ -746,7 +817,7 @@ def run_finalize(args) -> None:
             if value is not None and mean is not None and sd not in (None, 0.0)
             else None
         )
-        if row.get("original_judge_status") != "success":
+        if row.get("selected_judge_status") != "success":
             row["needs_adjudication"] = True
             row["final_jailbreak_label"] = None
             row["label_source"] = None
@@ -801,10 +872,13 @@ def run_finalize(args) -> None:
         "counts_by_finish_reason": counts("finish_reason"),
         "counts_by_hit_token_limit": counts("hit_token_limit"),
         "counts_by_generation_status": counts("generation_status"),
-        "counts_by_judge_status": counts("original_judge_status"),
+        "counts_by_judge_status": counts("selected_judge_status"),
+        "counts_by_original_judge_status": counts("original_judge_status"),
+        "counts_by_selected_judge_status": counts("selected_judge_status"),
         "rows_with_outputs": sum(row.get("output") is not None for row in rows),
         "rows_with_probe_scores": len(scores),
         "rows_with_usable_original_labels": sum(row.get("original_judge_status") == "success" for row in rows),
+        "rows_with_usable_selected_labels": sum(row.get("selected_judge_status") == "success" for row in rows),
         "rows_with_missing_labels": sum(row.get("final_jailbreak_label") is None for row in rows),
         "normalization_mean": mean,
         "normalization_population_sd": sd,
