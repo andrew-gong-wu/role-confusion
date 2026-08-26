@@ -1,8 +1,10 @@
-# Qwen3-32B hierarchical role probes
+# Qwen3-32B hierarchical role probes (invalid methodology)
 
-This directory contains the context-valid hierarchical rerun of the Qwen3-32B
-role probes and the comparison with the downloaded assistant persona axis. No
-text generation or behavioral experiment was performed.
+This directory preserves an exploratory Qwen3-32B hierarchical run and its
+comparison with the downloaded assistant persona axis. It is **not a valid
+replication of the paper's tag-controlled role-probe methodology** and should
+not be cited as evidence that Qwen3-32B has a well-separated linear role space.
+No text generation or behavioral experiment was performed.
 
 ## Setup
 
@@ -33,36 +35,26 @@ coefficients were transformed back into the original 5,120-dimensional
 decoder-layer-output coordinates, then class-centered before cosine comparison
 with the persona axis.
 
-## Layer selection and accuracy
+## Why this run is invalid for the replication
 
-The selection criterion was the mean balanced accuracy of the first three
-hierarchical heads, with the lower layer breaking ties. Layer **44** was
-selected:
+The role conditions used different role-specific conversational scaffolds.
+Those scaffolds introduced contextual features beyond the architectural tags,
+so a classifier could distinguish conditions without recovering the
+tag-induced role geometry described in the paper. The hierarchical design also
+changed the token sampling and fitting procedure. Its saved classification
+metrics therefore measure separability in this confounded construction, not a
+valid tag-controlled role probe.
 
-| Probe | Balanced accuracy |
-|---|---:|
-| Outer role | 0.727242 |
-| User vs tool | 0.941406 |
-| Assistant vs CoT | 0.949049 |
-| Mean of hierarchical heads | **0.872566** |
-| Secondary five-way leaf probe | **0.918546** |
-
-The five-way held-out per-class accuracies were system 0.955163, user 0.950408,
-tool 0.888587, CoT 0.904552, and assistant 0.894022. These are materially more
-coherent than the preliminary flat-wrapper run, though they are not a direct
-apples-to-apples accuracy comparison because the context construction, passage
-split, and token sampling all changed.
-
-cuML emitted L-BFGS line-search early-stop warnings for many fits. The returned
-probes nevertheless produced stable, high held-out accuracies. The warnings are
-preserved as a numerical caveat rather than silently treated as convergence.
+The corrected paper-style run holds neutral target text and positional controls
+constant across roles. Its much lower accuracy is the relevant result. The
+metrics in this directory are retained only as provenance for the discarded
+exploratory run.
 
 ## Persona-axis comparison
 
-At layer 44, the persona assistant axis remains nearly orthogonal to every
-centered leaf-role direction. Its cosines are -0.0003 with system, 0.0058 with
-user, 0.0027 with tool, -0.0010 with CoT, and -0.0080 with assistant. Thus the
-largest absolute persona/role cosine is 0.0080 in this setup.
+The saved persona-axis comparisons were computed from the confounded probe
+directions and are not interpretable as evidence for or against alignment
+between the persona axis and a valid role space.
 
 ## Files
 
