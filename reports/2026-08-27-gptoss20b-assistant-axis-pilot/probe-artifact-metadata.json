@@ -1,0 +1,58 @@
+{
+  "activation_sites": [
+    "pre_mlp",
+    "block_output"
+  ],
+  "feature_dtype": "float32 during fitting",
+  "labels": {
+    "compact_system_user_cot_assistant": [
+      "system",
+      "user",
+      "cot",
+      "assistant"
+    ],
+    "pilot_binary": [
+      "user",
+      "assistant"
+    ],
+    "pilot_plus_tool": [
+      "user",
+      "assistant",
+      "tool"
+    ],
+    "pilot_plus_tool_cot": [
+      "user",
+      "assistant",
+      "tool",
+      "cot"
+    ]
+  },
+  "layers": [
+    8,
+    10,
+    12,
+    14,
+    16,
+    18
+  ],
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "prompt_template_commit": "ec333c40fd43fe991e1ebf66765051b6d7e35784",
+  "saved_coefficient_dtype": "float32",
+  "seed": 123,
+  "solvers": {
+    "cuml_exact_prior": {
+      "C": 0.005,
+      "linesearch_max_iter": 100,
+      "max_iter": 5000,
+      "scaled": false
+    },
+    "sklearn_standardized": {
+      "C": 0.005,
+      "max_iter": 5000,
+      "scaled": true,
+      "solver": "lbfgs"
+    }
+  },
+  "subset_notice": "Coefficients are subset-derived compact replacements, not the lost full-corpus probes."
+}

@@ -1,0 +1,93 @@
+{
+  "artifacts": [
+    {
+      "authoritative_status": "candidate_for_reuse",
+      "bytes": 401789,
+      "digest_matches_recorded": true,
+      "exists": true,
+      "kind": "file",
+      "observed_sha256": "46a5af6c9b304ac99e27e8784623934f3848bd1ec9e4680021e243af53f1d0d2",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/neutral-passages.jsonl.gz",
+      "read_probe_hex": "1f8b0808dcda8d6a02ff6e6575747261",
+      "readable": true,
+      "recorded_sha256": "46a5af6c9b304ac99e27e8784623934f3848bd1ec9e4680021e243af53f1d0d2"
+    },
+    {
+      "authoritative_status": "candidate_for_reuse",
+      "bytes": 18164,
+      "digest_matches_recorded": true,
+      "exists": true,
+      "kind": "file",
+      "observed_sha256": "1429750f5bd616b5a6a4cb001fae46fb2e34895fe60890d9341e3b81c1918fe3",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/training-manifest.csv.gz",
+      "read_probe_hex": "1f8b0808dcda8d6a02ff747261696e69",
+      "readable": true,
+      "recorded_sha256": "1429750f5bd616b5a6a4cb001fae46fb2e34895fe60890d9341e3b81c1918fe3"
+    },
+    {
+      "authoritative_status": "candidate_for_reuse",
+      "bytes": 10028,
+      "digest_matches_recorded": true,
+      "exists": true,
+      "kind": "file",
+      "observed_sha256": "802297f51f8f8a249a1fdc648be774e55a71e6254f78e2ca03da1dd5121c6464",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/prompt-split.csv",
+      "read_probe_hex": "70726f6d70745f69782c73706c69740a",
+      "readable": true,
+      "recorded_sha256": "802297f51f8f8a249a1fdc648be774e55a71e6254f78e2ca03da1dd5121c6464"
+    },
+    {
+      "authoritative_status": "candidate_for_reuse",
+      "bytes": 3204855,
+      "digest_matches_recorded": true,
+      "exists": true,
+      "kind": "file",
+      "observed_sha256": "1e434c161cbb8d15e6f6770bc448615a0b78803ec064c7d4b2a9249109f9a918",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/probe-token-index.csv.gz",
+      "read_probe_hex": "1f8b080839dc8d6a02ff70726f62652d",
+      "readable": true,
+      "recorded_sha256": "1e434c161cbb8d15e6f6770bc448615a0b78803ec064c7d4b2a9249109f9a918"
+    },
+    {
+      "authoritative_status": "lost_do_not_reuse",
+      "bytes": 565442,
+      "exists": true,
+      "kind": "file",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/role-probes.pkl",
+      "read_probe_hex": "8004957a720100000000005d94287d94",
+      "readable": true,
+      "recorded_sha256": "101fbfa5f22de74c4bf8992253be3263013335407a86362e2494f8d7aec94b39"
+    },
+    {
+      "authoritative_status": "lost_do_not_reuse",
+      "bytes": 49556968368,
+      "exists": true,
+      "kind": "file",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/training-pre-mlp-activations.pt",
+      "read_probe_hex": "504b0304000008080000000000000000",
+      "readable": true,
+      "recorded_sha256": "21a1b96744a9eb0183f5f1c11e600e699483900ecf7f63d86ec100009d88994a"
+    },
+    {
+      "authoritative_status": "lost_do_not_reuse",
+      "exists": true,
+      "file_count": 12,
+      "kind": "directory",
+      "path": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3/heldout-predictions",
+      "readable": true,
+      "recorded_sha256": null,
+      "total_bytes": 20634444
+    }
+  ],
+  "captured_at": "2026-08-27T14:26:11.618546+00:00",
+  "prior_run": "/workspace/role-probe-storage/outputs/exact-full-pipeline-seed123-v3",
+  "reuse_decision": {
+    "activation_archive": "do_not_reuse_regenerate_compactly",
+    "heldout_predictions": "do_not_reuse_regenerate",
+    "neutral_passages": "reuse only because observed digest matches recorded digest",
+    "raw_probe_objects": "do_not_reuse_regenerate",
+    "split_ids": "reuse only because observed digest matches recorded digest",
+    "training_manifest": "reuse only because observed digest matches recorded digest"
+  },
+  "user_statement_authoritative": "Raw probe objects, coefficient vectors, large activation archive, and raw held-out logits/probabilities are treated as lost and are not reused even if a stale readable path is present."
+}

@@ -1,0 +1,55 @@
+{
+  "captured_at": "2026-08-27T14:26:09.895947+00:00",
+  "gpu": {
+    "cuda_runtime": "12.8",
+    "query": "NVIDIA H100 80GB HBM3, 81559 MiB, 81079 MiB, 580.126.09"
+  },
+  "hostname": "f96077eafa64",
+  "model": {
+    "cached_snapshot": "/workspace/role-probe-storage/huggingface/models--openai--gpt-oss-20b/snapshots/6cee5e81ee83917806bbde320786a8fb61efebee",
+    "config_sha256": "f5810001e8a2a82703763be72d9065c7801d455bfa73cd57e40cfd488261f8e4",
+    "hidden_size": 2880,
+    "identifier": "openai/gpt-oss-20b",
+    "num_hidden_layers": 24,
+    "revision": "6cee5e81ee83917806bbde320786a8fb61efebee"
+  },
+  "persistent_storage": {
+    "free_bytes": 193509936005120,
+    "path": "/workspace/role-probe-storage",
+    "total_bytes": 752624724213760,
+    "used_bytes": 559114788208640
+  },
+  "pinned_upstream": {
+    "expected_commit": "ec333c40fd43fe991e1ebf66765051b6d7e35784",
+    "gptoss_template": "/workspace/role-probe-storage/upstream/ec333c40fd43fe991e1ebf66765051b6d7e35784/utils/chat_templates/gptoss.j2",
+    "gptoss_template_sha256": "bcbbcd100a56ad723921990706697a40df73870d00f93746f00759f6f87994c9",
+    "observed_commit": "ec333c40fd43fe991e1ebf66765051b6d7e35784",
+    "path": "/workspace/role-probe-storage/upstream/ec333c40fd43fe991e1ebf66765051b6d7e35784"
+  },
+  "platform": "Linux-6.8.0-90-generic-x86_64-with-glibc2.35",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "repository": {
+    "branch": "codex/partner-work",
+    "commit": "2a149717685012dac17a6be45c6d0b604a19ba58",
+    "status_short": "?? docs/GPT_OSS_20B_ASSISTANT_AXIS_HANDOFF.md\n?? scripts/run_gptoss_assistant_axis.py"
+  },
+  "tokenizer": {
+    "bos_token": "<|startoftext|>",
+    "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+    "class": "TokenizersBackend",
+    "eos_token": "<|return|>",
+    "padding_side": "left",
+    "sha256": "ea8f446e9a22296022b9af736b1907ea7ca947a21d32754f31d5d96cc7aa11c7",
+    "vocab_size": 200019
+  },
+  "versions": {
+    "cuml": "25.10.00",
+    "cupy": "14.2.0",
+    "datasets": "5.0.1",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "sklearn": "1.7.2",
+    "torch": "2.9.1+cu128",
+    "transformers": "5.16.1"
+  }
+}
