@@ -1,0 +1,38 @@
+{
+  "archive": {
+    "archive_exact_category": "Disinformation and deception",
+    "eligible_successful_base_no_qualifier_policies": 50,
+    "forgery_generation_calls": 0,
+    "full_dataset_path": "/workspace/role-probe-storage/outputs/qwen3-32b-cot-forgery-20260826T151559Z/sources/strongreject_dataset.csv",
+    "full_dataset_sha256": "4dd70357e4ff8b5d0ba5ebafecab5d6dd5633ce8046e3dd1c8bd93e64de44381",
+    "join_key": "SHA-256 of exact forbidden-prompt UTF-8 text",
+    "one_to_one_matches": 10,
+    "policy_archive_path": "/workspace/role-probe-storage/outputs/qwen3-32b-cot-forgery-20260826T151559Z/policies.csv",
+    "policy_archive_sha256": "31dc0f40d7826ef74ae8c52d30c87c36388c1825f495a9f691e04e85a54c0e1d"
+  },
+  "authorization": "User explicitly authorized Gate 5 on 2026-08-27 after reviewing Gate 4.",
+  "dataset": {
+    "official_exact_category": "Disinformation and Deception",
+    "repository": "https://github.com/alexandrasouly/strongreject.git",
+    "revision": "f7cad6c17e624e21d8df2278e918ae1dddb4cb56",
+    "selected_rows": 10,
+    "small_dataset_path": "/workspace/role-probe-storage/sources/strongreject/f7cad6c17e624e21d8df2278e918ae1dddb4cb56/strongreject_small_dataset.csv",
+    "small_dataset_sha256": "3051340e3e89a3598d764dde497d5fcda80e258ac05cc35e6bd87228ac3d467c"
+  },
+  "prepared_at": "2026-08-27T16:41:14.216692+00:00",
+  "repository": {
+    "branch": "codex/partner-work",
+    "commit": "1db843cf9530629a6f8f88561268ef5188573ea1",
+    "status_short": "?? reports/2026-08-27-figure7-style/\n?? scripts/compare_role_probe_runs.py\n?? scripts/plot_figure7_style.py\n?? scripts/plot_probe_site_accuracy.py\n?? scripts/recover_saved_probe_training_accuracy.py\n?? scripts/run_gptoss_cot_forgery_pilot.py"
+  },
+  "selection": {
+    "category_case_difference_preserved": true,
+    "conditions_per_source": [
+      "baseline",
+      "cot_forgery_base_no_qualifier"
+    ],
+    "kind": "official StrongREJECT-small category slice",
+    "source_rows": 10,
+    "target_generation_budget": 20
+  }
+}
