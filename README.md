@@ -28,6 +28,24 @@ On the remote NVIDIA H100:
 No NVIDIA GPU is required for the local checks. The H100 provides compute, not
 version control: collaborators should continue to exchange code through GitHub.
 
+## Token-level Assistant Axis viewer
+
+The local viewer decrypts the completed GPT-OSS CoT-forgery trajectories and
+source responses in memory, then lets you inspect the Assistant Axis projection
+at every prompt and generated token. It binds only to `127.0.0.1`, uses a fresh
+session capability in the URL, disables browser caching, and serves one selected
+pair at a time.
+
+With the encrypted files in `data/projection-viewer/` and the owner-held keys in
+their recorded locations, run:
+
+```bash
+python3 scripts/serve_projection_viewer.py
+```
+
+The browser opens automatically. Use `--no-open` to print the private local URL
+without opening it, or `--port PORT` to choose a fixed loopback port.
+
 ## Repository layout
 
 ```text
