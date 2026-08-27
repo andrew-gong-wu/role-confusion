@@ -1,0 +1,279 @@
+{
+  "accepted_persona_responses": 15,
+  "accepted_personas": 10,
+  "completed_at": "2026-08-27T15:04:21.650790+00:00",
+  "judge_parse_failure_rate": 0.0,
+  "per_layer": {
+    "block_output": [
+      {
+        "axis_pc1_cosine": 0.2334327898724085,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 1.0,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 8,
+        "leave_one_persona_out_min_cosine": 0.989528228948648,
+        "promising": false,
+        "split_half_cosine": 0.38424418045157016
+      },
+      {
+        "axis_pc1_cosine": 0.047099506278515994,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 9,
+        "leave_one_persona_out_min_cosine": 0.9875453967559017,
+        "promising": false,
+        "split_half_cosine": 0.32408915938479155
+      },
+      {
+        "axis_pc1_cosine": 0.042496791316761574,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 1.0,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 10,
+        "leave_one_persona_out_min_cosine": 0.9871092868201248,
+        "promising": false,
+        "split_half_cosine": 0.30347702403719606
+      },
+      {
+        "axis_pc1_cosine": 0.08142788479622787,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 11,
+        "leave_one_persona_out_min_cosine": 0.9850924450637403,
+        "promising": false,
+        "split_half_cosine": 0.2800593068582979
+      },
+      {
+        "axis_pc1_cosine": 0.0604357306780283,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 12,
+        "leave_one_persona_out_min_cosine": 0.9856134000057202,
+        "promising": false,
+        "split_half_cosine": 0.28691781873218686
+      },
+      {
+        "axis_pc1_cosine": 0.014259612600529232,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 13,
+        "leave_one_persona_out_min_cosine": 0.9842362038530199,
+        "promising": false,
+        "split_half_cosine": 0.31743983025716077
+      },
+      {
+        "axis_pc1_cosine": 0.11019894339953934,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 14,
+        "leave_one_persona_out_min_cosine": 0.985972870477714,
+        "promising": false,
+        "split_half_cosine": 0.3585729030107356
+      },
+      {
+        "axis_pc1_cosine": 0.2604264290922557,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 15,
+        "leave_one_persona_out_min_cosine": 0.9865523675218447,
+        "promising": false,
+        "split_half_cosine": 0.3989235540963601
+      },
+      {
+        "axis_pc1_cosine": 0.3223187885362449,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 16,
+        "leave_one_persona_out_min_cosine": 0.9865700307548563,
+        "promising": false,
+        "split_half_cosine": 0.4039947007881809
+      },
+      {
+        "axis_pc1_cosine": 0.4519173799052322,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 17,
+        "leave_one_persona_out_min_cosine": 0.9869702591097765,
+        "promising": false,
+        "split_half_cosine": 0.4494096395310119
+      },
+      {
+        "axis_pc1_cosine": 0.6170148930900115,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 18,
+        "leave_one_persona_out_min_cosine": 0.985153010132526,
+        "promising": false,
+        "split_half_cosine": 0.45166975692193173
+      },
+      {
+        "axis_pc1_cosine": 0.4745072736628595,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 19,
+        "leave_one_persona_out_min_cosine": 0.9840786703834118,
+        "promising": false,
+        "split_half_cosine": 0.4454582972073624
+      },
+      {
+        "axis_pc1_cosine": 0.4417482600526241,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 20,
+        "leave_one_persona_out_min_cosine": 0.9838315659677753,
+        "promising": false,
+        "split_half_cosine": 0.44108006981031617
+      }
+    ],
+    "pre_mlp": [
+      {
+        "axis_pc1_cosine": 0.0980378750644916,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 8,
+        "leave_one_persona_out_min_cosine": 0.9849859084025436,
+        "promising": false,
+        "split_half_cosine": 0.33935649575403004
+      },
+      {
+        "axis_pc1_cosine": 0.07678080200856584,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 9,
+        "leave_one_persona_out_min_cosine": 0.9823758141297636,
+        "promising": false,
+        "split_half_cosine": 0.3035724825362307
+      },
+      {
+        "axis_pc1_cosine": 0.1494489603401953,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 10,
+        "leave_one_persona_out_min_cosine": 0.9818844443821523,
+        "promising": false,
+        "split_half_cosine": 0.25135282785205654
+      },
+      {
+        "axis_pc1_cosine": 0.1523541676817436,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 11,
+        "leave_one_persona_out_min_cosine": 0.9802190309157797,
+        "promising": false,
+        "split_half_cosine": 0.2550160480295756
+      },
+      {
+        "axis_pc1_cosine": 0.12654666669898143,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.6666666666666667,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 12,
+        "leave_one_persona_out_min_cosine": 0.9811663110060459,
+        "promising": false,
+        "split_half_cosine": 0.26825758225238705
+      },
+      {
+        "axis_pc1_cosine": 0.04236100036369277,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 13,
+        "leave_one_persona_out_min_cosine": 0.9812443063729843,
+        "promising": false,
+        "split_half_cosine": 0.30283023354309624
+      },
+      {
+        "axis_pc1_cosine": 0.08800160086009297,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 14,
+        "leave_one_persona_out_min_cosine": 0.9830619260411367,
+        "promising": false,
+        "split_half_cosine": 0.3506496234358128
+      },
+      {
+        "axis_pc1_cosine": 0.16450281192913002,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 15,
+        "leave_one_persona_out_min_cosine": 0.9850282786294116,
+        "promising": false,
+        "split_half_cosine": 0.3959135298050032
+      },
+      {
+        "axis_pc1_cosine": 0.19781131546123482,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 16,
+        "leave_one_persona_out_min_cosine": 0.9840071096557195,
+        "promising": false,
+        "split_half_cosine": 0.36512775839252537
+      },
+      {
+        "axis_pc1_cosine": 0.2805016800277297,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 17,
+        "leave_one_persona_out_min_cosine": 0.9848349334366435,
+        "promising": false,
+        "split_half_cosine": 0.4074246204986987
+      },
+      {
+        "axis_pc1_cosine": 0.38767219644800116,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 18,
+        "leave_one_persona_out_min_cosine": 0.9846645982382894,
+        "promising": false,
+        "split_half_cosine": 0.4308805655804294
+      },
+      {
+        "axis_pc1_cosine": 0.33170757868022066,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 19,
+        "leave_one_persona_out_min_cosine": 0.9830732451897577,
+        "promising": false,
+        "split_half_cosine": 0.41567936298535585
+      },
+      {
+        "axis_pc1_cosine": 0.26065948691523483,
+        "default_projection_above_persona_mean": true,
+        "heldout_auroc_mean": 0.8333333333333334,
+        "heldout_balanced_accuracy_mean": 0.5,
+        "layer": 20,
+        "leave_one_persona_out_min_cosine": 0.9829472952446141,
+        "promising": false,
+        "split_half_cosine": 0.41100292619485257
+      }
+    ]
+  },
+  "pilot_personas": 12,
+  "pilot_warning": "PCA and confidence intervals are diagnostics from 12 personas and two questions, not paper-quality estimates.",
+  "promising_layers_by_site": {
+    "block_output": [],
+    "pre_mlp": []
+  },
+  "recommendation": "stop"
+}

@@ -1,0 +1,229 @@
+{
+  "responses": [
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.5128034949302673,
+          "shape_block_output": [
+            243,
+            2880
+          ],
+          "shape_pre_mlp": [
+            243,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.4786885380744934,
+          "shape_block_output": [
+            243,
+            2880
+          ],
+          "shape_pre_mlp": [
+            243,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "default_assistant__q0",
+      "response_token_count": 243
+    },
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.5202641487121582,
+          "shape_block_output": [
+            237,
+            2880
+          ],
+          "shape_pre_mlp": [
+            237,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.48514509201049805,
+          "shape_block_output": [
+            237,
+            2880
+          ],
+          "shape_pre_mlp": [
+            237,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "tutor__q0",
+      "response_token_count": 237
+    },
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.51469886302948,
+          "shape_block_output": [
+            243,
+            2880
+          ],
+          "shape_pre_mlp": [
+            243,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.4829552471637726,
+          "shape_block_output": [
+            243,
+            2880
+          ],
+          "shape_pre_mlp": [
+            243,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "librarian__q0",
+      "response_token_count": 243
+    },
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.5185455679893494,
+          "shape_block_output": [
+            243,
+            2880
+          ],
+          "shape_pre_mlp": [
+            243,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.4832885265350342,
+          "shape_block_output": [
+            243,
+            2880
+          ],
+          "shape_pre_mlp": [
+            243,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "engineer__q0",
+      "response_token_count": 243
+    },
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.5040397644042969,
+          "shape_block_output": [
+            242,
+            2880
+          ],
+          "shape_pre_mlp": [
+            242,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.47704118490219116,
+          "shape_block_output": [
+            242,
+            2880
+          ],
+          "shape_pre_mlp": [
+            242,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "pirate__q0",
+      "response_token_count": 242
+    },
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.5181389451026917,
+          "shape_block_output": [
+            240,
+            2880
+          ],
+          "shape_pre_mlp": [
+            240,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.49547648429870605,
+          "shape_block_output": [
+            240,
+            2880
+          ],
+          "shape_pre_mlp": [
+            240,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "mystic__q0",
+      "response_token_count": 240
+    },
+    {
+      "layers": {
+        "12": {
+          "finite": true,
+          "mean_cosine": 0.517711341381073,
+          "shape_block_output": [
+            232,
+            2880
+          ],
+          "shape_pre_mlp": [
+            232,
+            2880
+          ],
+          "sites_bit_identical": false
+        },
+        "16": {
+          "finite": true,
+          "mean_cosine": 0.48586422204971313,
+          "shape_block_output": [
+            232,
+            2880
+          ],
+          "shape_pre_mlp": [
+            232,
+            2880
+          ],
+          "sites_bit_identical": false
+        }
+      },
+      "response_id": "anarchist__q0",
+      "response_token_count": 232
+    }
+  ],
+  "validated_at": "2026-08-27T14:58:52.536701+00:00"
+}

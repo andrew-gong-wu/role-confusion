@@ -1,0 +1,19 @@
+{
+  "accepted_response_count": 100,
+  "completed_at": "2026-08-27T15:30:46.146077+00:00",
+  "endpoint": "https://openrouter.ai/api/v1",
+  "judge_model": "gpt-4.1-mini",
+  "manual_review_count": 48,
+  "new_judgments_this_command": 72,
+  "parse_failure_rate": 0.0,
+  "parse_failures": 0,
+  "persona_judgments": 144,
+  "personas_with_accepted_response": 12,
+  "routed_model": "openai/gpt-4.1-mini",
+  "score_counts": {
+    "0": 5,
+    "1": 21,
+    "2": 18,
+    "3": 100
+  }
+}

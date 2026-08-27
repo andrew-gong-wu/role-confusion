@@ -1,0 +1,71 @@
+{
+  "added_questions": [
+    14,
+    39,
+    69,
+    95,
+    128,
+    171
+  ],
+  "copied_artifacts": [
+    {
+      "path": "responses.jsonl.gz",
+      "source_sha256": "07ec0f2fd350d5e59caafda766d9d5aab70ce2f7a83434ca3b8c382b6b4a2bd3",
+      "target_sha256": "07ec0f2fd350d5e59caafda766d9d5aab70ce2f7a83434ca3b8c382b6b4a2bd3"
+    },
+    {
+      "path": "judge-raw.jsonl.gz",
+      "source_sha256": "3f063258b5fe9eca1f4e925dff63868faea208618a22638b2334cd82bed7496f",
+      "target_sha256": "3f063258b5fe9eca1f4e925dff63868faea208618a22638b2334cd82bed7496f"
+    },
+    {
+      "path": "generation-micro-summary.json",
+      "source_sha256": "4e62a2eb747ad910e143ce439dbce63c5c4b5998e1538effe6b3c2542a2bf864",
+      "target_sha256": "4e62a2eb747ad910e143ce439dbce63c5c4b5998e1538effe6b3c2542a2bf864"
+    },
+    {
+      "path": "micro-hook-validation.json",
+      "source_sha256": "8cd9cd6b1376bb5fd256bdb54442f21b805191719b49861839df7e5c69d1f8a8",
+      "target_sha256": "8cd9cd6b1376bb5fd256bdb54442f21b805191719b49861839df7e5c69d1f8a8"
+    },
+    {
+      "path": "micro-pilot-decision.json",
+      "source_sha256": "754c317e55b341a05cc41e8fb7ffa7f8a8da26a825c9dd990610e835a22ee7a4",
+      "target_sha256": "754c317e55b341a05cc41e8fb7ffa7f8a8da26a825c9dd990610e835a22ee7a4"
+    }
+  ],
+  "created_at": "2026-08-27T15:28:49.804299+00:00",
+  "new_generation_count": 78,
+  "reused_generation_count": 78,
+  "selection_rationales": {
+    "128": "decision-making and metacognition",
+    "14": "educational design",
+    "171": "low-stakes ambiguous observation",
+    "39": "practical negotiation",
+    "69": "scientific explanation",
+    "95": "relationship advice"
+  },
+  "source_questions": [
+    0,
+    2,
+    5,
+    51,
+    119,
+    190
+  ],
+  "source_run": "/workspace/role-probe-storage/outputs/gptoss20b-assistant-axis-q6-20260827-1520",
+  "target_questions": [
+    0,
+    2,
+    5,
+    14,
+    39,
+    51,
+    69,
+    95,
+    119,
+    128,
+    171,
+    190
+  ]
+}

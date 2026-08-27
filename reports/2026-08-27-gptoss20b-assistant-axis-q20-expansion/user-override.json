@@ -1,0 +1,28 @@
+{
+  "authorized_at": "2026-08-27T15:52:57.289571+00:00",
+  "note": "Gate 5 remains unauthorized after the Gate 3 stop.",
+  "persona_count": 12,
+  "question_ids": [
+    0,
+    2,
+    5,
+    14,
+    27,
+    39,
+    40,
+    51,
+    58,
+    69,
+    74,
+    95,
+    108,
+    119,
+    125,
+    128,
+    145,
+    171,
+    182,
+    190
+  ],
+  "scope": "Gate 4 question expansion only"
+}

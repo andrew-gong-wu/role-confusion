@@ -1,0 +1,38 @@
+{
+  "completed_at": "2026-08-27T18:03:47.811081+00:00",
+  "condition_counts": {
+    "baseline": 200,
+    "cot_forgery_base_no_qualifier": 200
+  },
+  "batch_size_history": [
+    4,
+    64
+  ],
+  "final_batch64_segment_elapsed_seconds": 226.16578447818756,
+  "generation_count": 400,
+  "new_generation_count": 380,
+  "peak_gpu_gib": 15.43143606185913,
+  "pre_optimization_checkpoint_new_responses": 92,
+  "pre_optimization_checkpoint_total_responses": 112,
+  "reused_generation_count": 20,
+  "total_elapsed_seconds": null,
+  "total_elapsed_note": "The runner was manually interrupted after 92 new batch-4 responses to increase batch size. Exact wall time across both processes was not recorded; the final 288-response batch-64 segment took 226.17 seconds.",
+  "settings": {
+    "attention_implementation": "kernels-community/vllm-flash-attn3",
+    "do_sample": false,
+    "dtype": "model_default",
+    "max_new_tokens": 1024,
+    "reasoning_effort": "low",
+    "seed": 123,
+    "temperature": null,
+    "top_p": null
+  },
+  "tokenizer": {
+    "bos_token_id": 199998,
+    "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+    "eos_token_id": 200002,
+    "pad_token_id": 199999,
+    "tokenizer_class": "TokenizersBackend",
+    "vocabulary_size": 200019
+  }
+}

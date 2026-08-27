@@ -1,0 +1,33 @@
+{
+  "completion_generation_count": 149,
+  "default_condition_count": 1,
+  "do_sample": false,
+  "instruction_variant": 0,
+  "judge_model": "gpt-4.1-mini",
+  "judge_threshold": 3,
+  "max_new_tokens": 256,
+  "micro_generation_count": 7,
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "persona_count": 12,
+  "questions": [
+    0,
+    2,
+    5,
+    14,
+    39,
+    51,
+    69,
+    95,
+    119,
+    128,
+    171,
+    190
+  ],
+  "reasoning_effort": "low",
+  "seed": 123,
+  "target_generation_budget": 156,
+  "temperature": null,
+  "top_p": null,
+  "user_override": "On 2026-08-27 the user explicitly authorized Gate 4 after review of the Gate 3 numerical stop, with a limited persona panel, then explicitly authorized adding more questions after reviewing the two-question result."
+}

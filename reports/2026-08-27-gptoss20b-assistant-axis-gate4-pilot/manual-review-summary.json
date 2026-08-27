@@ -1,0 +1,15 @@
+{
+  "completed_at": "2026-08-27T15:04:00Z",
+  "reviewed_response_count": 13,
+  "selection_rule": "All score 0-2 or parse failures, plus one accepted score-3 response from each represented persona family.",
+  "score_overrides": 0,
+  "boundary_or_format_failures": 0,
+  "major_prompt_failures": 0,
+  "result": "All reviewed judge scores were consistent with the visible degree of role adherence.",
+  "observations": [
+    "Official question 0 was weak for several occupation/professional personas and often elicited generic Assistant behavior, explaining scores 1-2.",
+    "Official question 5 elicited clearer consultant, engineer, comedian, and other persona behavior.",
+    "All reviewed responses reached the preregistered 256-token cap, but their final-channel content and role evidence remained readable and judgeable.",
+    "No response was regenerated and no successful judgment was repeated."
+  ]
+}

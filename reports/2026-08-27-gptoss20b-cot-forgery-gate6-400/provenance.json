@@ -1,0 +1,81 @@
+{
+  "archive": {
+    "eligible_successful_base_no_qualifier_policies": 313,
+    "forgery_generation_calls": 0,
+    "one_to_one_matches": 313,
+    "policy_archive_path": "/workspace/role-probe-storage/outputs/qwen3-32b-cot-forgery-20260826T151559Z/policies.csv",
+    "policy_archive_sha256": "31dc0f40d7826ef74ae8c52d30c87c36388c1825f495a9f691e04e85a54c0e1d"
+  },
+  "authorization": "User explicitly authorized approximately 400 total CoT-Forgery runs on 2026-08-27.",
+  "dataset": {
+    "full_dataset_path": "/workspace/role-probe-storage/outputs/qwen3-32b-cot-forgery-20260826T151559Z/sources/strongreject_dataset.csv",
+    "full_dataset_sha256": "4dd70357e4ff8b5d0ba5ebafecab5d6dd5633ce8046e3dd1c8bd93e64de44381",
+    "repository": "https://github.com/alexandrasouly/strongreject.git",
+    "rows": 313
+  },
+  "prepared_at": "2026-08-27T17:44:48.604335+00:00",
+  "repository": {
+    "branch": "codex/partner-work",
+    "commit": "6e50edf5ca8258872520c9b8074561d9f9ae6ea9",
+    "status_short": "M scripts/run_gptoss_cot_forgery_pilot.py\n?? reports/2026-08-27-figure7-style/\n?? scripts/compare_role_probe_runs.py\n?? scripts/plot_figure7_style.py\n?? scripts/plot_probe_site_accuracy.py\n?? scripts/recover_saved_probe_training_accuracy.py"
+  },
+  "reuse": {
+    "new_target_generations": 380,
+    "reused_target_generations": 20,
+    "seed_response_path": "/tmp/gptoss20b-gate5-seed-responses.jsonl.gz",
+    "seed_response_sha256": "94d08ef349ddc9ac38fa8575219a8f693f83ed08604b88f5e417241b1900ad33"
+  },
+  "scope": "Gate 6 user-authorized 200-pair CoT-Forgery expansion",
+  "selection": {
+    "category_quotas": {
+      "Disinformation and deception": 32,
+      "Hate, harassment and discrimination": 32,
+      "Illegal goods and services": 32,
+      "Non-violent crimes": 38,
+      "Sexual content": 32,
+      "Violence": 34
+    },
+    "conditions": 400,
+    "details": {
+      "Disinformation and deception": {
+        "available": 50,
+        "forced_gate5_seed_rows": 10,
+        "quota": 32,
+        "sha256_ranked_additional_rows": 22
+      },
+      "Hate, harassment and discrimination": {
+        "available": 50,
+        "forced_gate5_seed_rows": 0,
+        "quota": 32,
+        "sha256_ranked_additional_rows": 32
+      },
+      "Illegal goods and services": {
+        "available": 50,
+        "forced_gate5_seed_rows": 0,
+        "quota": 32,
+        "sha256_ranked_additional_rows": 32
+      },
+      "Non-violent crimes": {
+        "available": 59,
+        "forced_gate5_seed_rows": 0,
+        "quota": 38,
+        "sha256_ranked_additional_rows": 38
+      },
+      "Sexual content": {
+        "available": 50,
+        "forced_gate5_seed_rows": 0,
+        "quota": 32,
+        "sha256_ranked_additional_rows": 32
+      },
+      "Violence": {
+        "available": 54,
+        "forced_gate5_seed_rows": 0,
+        "quota": 34,
+        "sha256_ranked_additional_rows": 34
+      }
+    },
+    "outcome_blind": true,
+    "rule": "include all ten prior Gate 5 requests, then select the lowest exact-prompt SHA-256 values within each preregistered proportional category quota",
+    "selected_requests": 200
+  }
+}

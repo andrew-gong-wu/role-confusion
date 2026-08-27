@@ -1,0 +1,29 @@
+{
+  "completed_at": "2026-08-27T14:58:52.542302+00:00",
+  "expected_new_generations": 7,
+  "finish_reasons": {
+    "length": 7
+  },
+  "generated_token_counts": [
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256
+  ],
+  "new_generations": 7,
+  "peak_allocated_gpu_bytes": 14079048704,
+  "response_token_counts": [
+    243,
+    237,
+    243,
+    243,
+    242,
+    240,
+    232
+  ],
+  "scope": "micro",
+  "total_saved_generations": 7
+}

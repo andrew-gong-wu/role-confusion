@@ -1,0 +1,28 @@
+{
+  "completed_at": "2026-08-27T16:45:25.637037+00:00",
+  "condition_counts": {
+    "baseline": 10,
+    "cot_forgery_base_no_qualifier": 10
+  },
+  "elapsed_seconds": 188.54342071339488,
+  "generation_count": 20,
+  "peak_gpu_gib": 13.047728061676025,
+  "settings": {
+    "attention_implementation": "kernels-community/vllm-flash-attn3",
+    "do_sample": false,
+    "dtype": "model_default",
+    "max_new_tokens": 1024,
+    "reasoning_effort": "low",
+    "seed": 123,
+    "temperature": null,
+    "top_p": null
+  },
+  "tokenizer": {
+    "bos_token_id": 199998,
+    "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+    "eos_token_id": 200002,
+    "pad_token_id": 199999,
+    "tokenizer_class": "TokenizersBackend",
+    "vocabulary_size": 200019
+  }
+}

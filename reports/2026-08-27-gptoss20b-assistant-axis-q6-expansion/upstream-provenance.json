@@ -1,0 +1,110 @@
+{
+  "commit": "a98961956072224eaf244eb289d6c01700b63795",
+  "question_file": {
+    "path": "data/extraction_questions.jsonl",
+    "selected_ids": [
+      0,
+      2,
+      5,
+      51,
+      119,
+      190
+    ],
+    "sha256": "31650b9a55d6b827d29ec2ee89034c7efd454672779b3ad9d7c8c4e9ea14f69e"
+  },
+  "repository": "https://github.com/safety-research/assistant-axis.git",
+  "role_files": [
+    {
+      "eval_prompt_sha256": "c24b2f524fa5092746d6630cabb0f3be914ce4f8fb6428e6d97f2124601fc2b9",
+      "instruction_sha256": "72b5f886778dbfbf49ce70a470fb1a58ed38198b43279878c898a0d152e15438",
+      "path": "data/roles/instructions/assistant.json",
+      "role": "default_assistant",
+      "sha256": "ddd91bf741a2bd3f37194e11dc0659fabb07aac2c14d7a6213a4a85c11253e9b"
+    },
+    {
+      "eval_prompt_sha256": "fe17e70a7510d3464e4d608a3901a267f849f6f2255bca5bd5650670d8e737c0",
+      "instruction_sha256": "255be9bffbd6497076279c0638f5a569c512283a02d330f07a43cb81868cb796",
+      "path": "data/roles/instructions/tutor.json",
+      "role": "tutor",
+      "sha256": "4471bde7d77de1b3052e397e9d877a73d0dd98662c868a3699974bcd7cb4c2ab"
+    },
+    {
+      "eval_prompt_sha256": "bd000b1960e593a981344d2ea9880e5698988599da54ab6808fdea58c1085bed",
+      "instruction_sha256": "b9f15a40143796b4f163850073b042b4294e43ee521eafb21163f6d7d0250a30",
+      "path": "data/roles/instructions/consultant.json",
+      "role": "consultant",
+      "sha256": "ebbaeec0c7847cc973188804525534a254a410700d759b593768227f67acf05c"
+    },
+    {
+      "eval_prompt_sha256": "af21553e4e9f52adbf5716014e13c967e4681c9841ad5f7a7ce5fe48c1bd76f0",
+      "instruction_sha256": "7fb189a51acd470fcbdc759ba06f94e833b90619d69506b21b87c39f9db6ed50",
+      "path": "data/roles/instructions/mediator.json",
+      "role": "mediator",
+      "sha256": "0e4f59446181a89d18bf989b69fd170c31ce4fb8455fc35dccd24b077e3791c9"
+    },
+    {
+      "eval_prompt_sha256": "660a668335786af5d1e05c2d17a63157d09f811d73b870ac8681ffeb86fbaf93",
+      "instruction_sha256": "d37305968d4266e0c895aa845f07010a0d88bf599497dc3ffed5e02856cb8d9d",
+      "path": "data/roles/instructions/librarian.json",
+      "role": "librarian",
+      "sha256": "df7d31eb0da6facf0fedf6181cd4b9531c0a93019fbc680f4d37316715d2bca2"
+    },
+    {
+      "eval_prompt_sha256": "8447176a08f32b8d148d22e3e18af5c0d4c9d59d3cde37af11a07c44a0a7bde5",
+      "instruction_sha256": "9fa70683a85ae5596ca4b48ca8be6ef032ad00467badedbf220a06412f6e535f",
+      "path": "data/roles/instructions/engineer.json",
+      "role": "engineer",
+      "sha256": "2b8e24c66272538f14d0c35b7df8b73f77e96161ee9d94e5202c2fd5f6cd0312"
+    },
+    {
+      "eval_prompt_sha256": "49d8e5d3f7149325ec78e38bb4277880d8a593df1c0fca2dfe81fc5328846aca",
+      "instruction_sha256": "bf5743004a8615df35f1194445d3e0a70f96a25308c0176aee790f8568876aba",
+      "path": "data/roles/instructions/bartender.json",
+      "role": "bartender",
+      "sha256": "ad88e75b6bf4b395cabc915089cc84a7d0615d11983c3ef751907fa7e52fee19"
+    },
+    {
+      "eval_prompt_sha256": "b3d6bb6928ebd0c123fb97abe8ecc8fccdaac32ed4c6a36ccc3e9e6bac7349a6",
+      "instruction_sha256": "f39c0eb2362aa6502ab2698748d4147928a30353046bd2fb4876da407e71d2ec",
+      "path": "data/roles/instructions/pirate.json",
+      "role": "pirate",
+      "sha256": "c2a251a99589afd9781057d0ead62ed9ddf7aeb6fa8d42e8dbfc80aac289cb4a"
+    },
+    {
+      "eval_prompt_sha256": "d3fde66e8c6cd48e16d4b930336102c5f8bcf1bb8dd1e9dfa31c7a63ea405aaa",
+      "instruction_sha256": "571bbc15c7639835c2bbc07f79ca232c6ce98efaefdb080689e8a89673fc78e0",
+      "path": "data/roles/instructions/comedian.json",
+      "role": "comedian",
+      "sha256": "6dc53abec60545d27942754c4a0a69472999b0c2b5e6ac8b271117143e9b3166"
+    },
+    {
+      "eval_prompt_sha256": "a6b35e84c8d83765e03e607e587ac986c5146bf3df407904492a0ca1fb8b8118",
+      "instruction_sha256": "a5c5dcbc23e26a6b15d82fc010a5ae3571d7d785415e7b882593326da6af8b09",
+      "path": "data/roles/instructions/genie.json",
+      "role": "genie",
+      "sha256": "c57431e3227b38ffc984de2d49036659b4e9525e64d9d34f1f9fb0b345431c51"
+    },
+    {
+      "eval_prompt_sha256": "5753e3aff0625142b9727076b32921371fa27b21f5e09e4ab9b1c21f9930d95e",
+      "instruction_sha256": "a61bd5e7901fa5516db96a7707b98a494b4180213ad36c7e817b60e5ef0176eb",
+      "path": "data/roles/instructions/mystic.json",
+      "role": "mystic",
+      "sha256": "cc7f7bcfc62bfb3212c182888dd439a5b8803b7bef24062639ad29695f483444"
+    },
+    {
+      "eval_prompt_sha256": "07bc4d0bafcccd24f7b20ee6e98ffffccc28cda2b11c38c351943e723187e831",
+      "instruction_sha256": "ed7b573b8da8b4163ce5bfa78d59410fc4bd006c3d612e1c7d72c18924bba883",
+      "path": "data/roles/instructions/anarchist.json",
+      "role": "anarchist",
+      "sha256": "ec3a4c5061486124c4c4091916dd9e4366cd12a65c05c616b0bdb25a0b4fd1e2"
+    },
+    {
+      "eval_prompt_sha256": "9b58493c8157ae08a4afdc78bd636f1f9746de903f8cd2686dbc445f5ae79ce0",
+      "instruction_sha256": "d8a0112db2a1624addfdd995b09e73469a2b5c31fe3fefc98857dbe3a3a8648c",
+      "path": "data/roles/instructions/devils_advocate.json",
+      "role": "devils_advocate",
+      "sha256": "43ed6b86178d8016f74b02c25f4d77c94727404167daed9f398dbedc0dddb8ee"
+    }
+  ],
+  "root": "/workspace/role-probe-storage/upstream/assistant-axis-a98961956072224eaf244eb289d6c01700b63795"
+}

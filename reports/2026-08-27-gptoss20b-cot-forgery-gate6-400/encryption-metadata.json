@@ -1,0 +1,17 @@
+{
+  "cipher": "AES-256-CBC",
+  "encrypted_at_rest": true,
+  "key_derivation": "PBKDF2-HMAC-SHA256",
+  "pbkdf2_iterations": 600000,
+  "ciphertext_file": "sensitive-artifacts.tar.gz.enc",
+  "ciphertext_sha256": "7fff1602fe800b3128d70c378bcfb6e998ba945937a99323069bd13f409c5d6b",
+  "decryption_key_location": "/Users/rigel/.codex/gate5-keys/gptoss20b-cot-forgery-gate6-400-20260827-1740.key",
+  "plaintext_files_removed_after_verified_round_trip": true,
+  "archived_files": {
+    "cot-forgery-pilot/prepare/conditions.jsonl.gz": "7c254bd8a19e11de20399b1693a32b855b5fb3e10983659984a6cb19d801c32b",
+    "cot-forgery-pilot/prepare/forgeries.jsonl.gz": "f678f88ad2cb6772582d90be86d81a4d3372d9e3341081e91965e98bc9295f31",
+    "cot-forgery-pilot/prepare/seed-responses.jsonl.gz": "8d5467c30e4a500931e9148dd43218e456e0855d744569f303b2187fc28ff775",
+    "cot-forgery-pilot/generation/responses.jsonl.gz": "4df707ef3712a6806394e7be1fe6702a55bfe1f4ea7c7be8cb5bcd8aa37cc5ac",
+    "cot-forgery-pilot/judge/judge-raw.jsonl.gz": "4afd5c687b0b4d8f5cb62271963427dfe5e347dae41eb3cb16a075467a29fe96"
+  }
+}
