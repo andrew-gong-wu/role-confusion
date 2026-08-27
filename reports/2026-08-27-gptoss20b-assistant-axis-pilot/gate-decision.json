@@ -1,0 +1,86 @@
+{
+  "activation_capture": {
+    "dtype": "float16 temporary in RAM only",
+    "layers": [
+      8,
+      10,
+      12,
+      14,
+      16,
+      18
+    ],
+    "recovery": "replay prompt-manifest.csv with pinned model and runner",
+    "sites": [
+      "pre_mlp",
+      "block_output"
+    ],
+    "temporary_activation_files_created": false,
+    "temporary_activation_files_removed": false
+  },
+  "binary_best_balanced_accuracy_by_site": {
+    "block_output": 0.9978586723768736,
+    "pre_mlp": 1.0
+  },
+  "compact_layer16_pre_mlp_balanced_accuracy": 0.9009009009009009,
+  "compact_probe_expansion_to_100_required": false,
+  "invalid_fits": [
+    {
+      "activation_site": "block_output",
+      "layer": 12,
+      "metrics": {
+        "accuracy": 0.7548179871520343,
+        "balanced_accuracy": 0.7548179871520343,
+        "coefficient_norms": [
+          0.3118581771850586,
+          0.3571603000164032,
+          0.3724655210971832,
+          0.39137110114097595
+        ],
+        "coefficients_finite": true,
+        "converged": true,
+        "n_iter": 1299,
+        "n_test_tokens": 1868,
+        "n_train_tokens": 7332,
+        "nll": 1.5332836958116927,
+        "nll_beats_uniform": false,
+        "tokens_per_test_class": 467,
+        "tokens_per_train_class": 1833,
+        "uniform_nll": 1.3862943611198906,
+        "warnings": []
+      },
+      "probe": "pilot_plus_tool_cot",
+      "roles": "user|assistant|tool|cot",
+      "solver": "cuml_exact_prior"
+    },
+    {
+      "activation_site": "block_output",
+      "layer": 12,
+      "metrics": {
+        "accuracy": 0.7381244881244882,
+        "balanced_accuracy": 0.738124488124488,
+        "coefficient_norms": [
+          0.5107262134552002,
+          0.5352059006690979,
+          0.5508627891540527,
+          0.5695546269416809
+        ],
+        "coefficients_finite": true,
+        "converged": true,
+        "n_iter": 1893,
+        "n_test_tokens": 4884,
+        "n_train_tokens": 18036,
+        "nll": 2.17215561116285,
+        "nll_beats_uniform": false,
+        "tokens_per_test_class": 1221,
+        "tokens_per_train_class": 4509,
+        "uniform_nll": 1.3862943611198906,
+        "warnings": []
+      },
+      "probe": "compact_system_user_cot_assistant",
+      "roles": "system|user|cot|assistant",
+      "solver": "cuml_exact_prior"
+    }
+  ],
+  "peak_allocated_gpu_bytes": 21104292864,
+  "role_pilot_decision": "stop_numerically_invalid_fit"
+}

@@ -1,0 +1,57 @@
+{
+  "captured_from_stage_stderr": true,
+  "meaning": "Each native cuML line-search warning is treated as a failed numerical fit under the handoff plan.",
+  "events": [
+    {
+      "probe": "pilot_binary",
+      "activation_site": "block_output",
+      "layer": 10,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS stopped, because the line search failed to advance (step delta = 0.000000)"
+    },
+    {
+      "probe": "pilot_plus_tool",
+      "activation_site": "block_output",
+      "layer": 12,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS stopped, because the line search failed to advance (step delta = 0.000000)"
+    },
+    {
+      "probe": "pilot_plus_tool",
+      "activation_site": "block_output",
+      "layer": 18,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS line search failed (code 4); stopping at the last valid step"
+    },
+    {
+      "probe": "pilot_plus_tool_cot",
+      "activation_site": "pre_mlp",
+      "layer": 12,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS stopped, because the line search failed to advance (step delta = 0.000000)"
+    },
+    {
+      "probe": "pilot_plus_tool_cot",
+      "activation_site": "block_output",
+      "layer": 16,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS stopped, because the line search failed to advance (step delta = 0.000000)"
+    },
+    {
+      "probe": "pilot_plus_tool_cot",
+      "activation_site": "block_output",
+      "layer": 18,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS line search failed (code 4); stopping at the last valid step"
+    },
+    {
+      "probe": "compact_system_user_cot_assistant",
+      "activation_site": "block_output",
+      "layer": 12,
+      "solver": "cuml_exact_prior",
+      "message": "L-BFGS stopped, because the line search failed to advance (step delta = 0.000000)"
+    }
+  ],
+  "additional_probability_warning": "cuML multi-class predict_proba outputs repeatedly triggered sklearn's warning that y_prob values do not sum to one.",
+  "operational_decision": "stop_after_gate_3_do_not_start_persona_or_cot_forgery_generation"
+}

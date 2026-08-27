@@ -1,0 +1,211 @@
+{
+  "activation_sites": {
+    "block_output": "model.model.layers[i] output after attention and MLP residual updates",
+    "pre_mlp": "model.model.layers[i].post_attention_layernorm output"
+  },
+  "captured_at": "2026-08-27T14:28:03.751012+00:00",
+  "comparisons": {
+    "baseline_vs_block_reference_logits": {
+      "bit_exact": true,
+      "cosine_similarity": 1.000006914138794,
+      "equal_shape": true,
+      "finite_left": true,
+      "finite_right": true,
+      "max_abs_error": 0.0,
+      "shape": [
+        1,
+        33,
+        201088
+      ]
+    },
+    "baseline_vs_dual_logits": {
+      "bit_exact": true,
+      "cosine_similarity": 1.000006914138794,
+      "equal_shape": true,
+      "finite_left": true,
+      "finite_right": true,
+      "max_abs_error": 0.0,
+      "shape": [
+        1,
+        33,
+        201088
+      ]
+    },
+    "baseline_vs_pre_reference_logits": {
+      "bit_exact": true,
+      "cosine_similarity": 1.000006914138794,
+      "equal_shape": true,
+      "finite_left": true,
+      "finite_right": true,
+      "max_abs_error": 0.0,
+      "shape": [
+        1,
+        33,
+        201088
+      ]
+    },
+    "layers": {
+      "12": {
+        "block_output_vs_standard_hook": {
+          "bit_exact": true,
+          "cosine_similarity": 1.0000219345092773,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 0.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "pre_mlp_vs_block_output": {
+          "bit_exact": false,
+          "cosine_similarity": 0.4397689402103424,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 41644.5,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "pre_mlp_vs_pinned_custom_forward": {
+          "bit_exact": true,
+          "cosine_similarity": 1.000000238418579,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 0.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "pre_mlp_vs_standard_hook": {
+          "bit_exact": true,
+          "cosine_similarity": 1.000000238418579,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 0.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "sites_are_distinct": true
+      },
+      "16": {
+        "block_output_vs_standard_hook": {
+          "bit_exact": true,
+          "cosine_similarity": 1.0,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 0.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "pre_mlp_vs_block_output": {
+          "bit_exact": false,
+          "cosine_similarity": 0.48131120204925537,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 41660.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "pre_mlp_vs_pinned_custom_forward": {
+          "bit_exact": true,
+          "cosine_similarity": 0.9999958872795105,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 0.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "pre_mlp_vs_standard_hook": {
+          "bit_exact": true,
+          "cosine_similarity": 0.9999958872795105,
+          "equal_shape": true,
+          "finite_left": true,
+          "finite_right": true,
+          "max_abs_error": 0.0,
+          "shape": [
+            1,
+            33,
+            2880
+          ]
+        },
+        "sites_are_distinct": true
+      }
+    }
+  },
+  "decoded_prompt": "<|startoftext|><|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.<|end|><|start|>user<|message|>Briefly explain why leaves look green.<|end|><|start|>assistant",
+  "hook_counts": {
+    "block_reference": 2,
+    "dual": 4,
+    "pre_reference": 2,
+    "remaining_after_runs": 0
+  },
+  "layers": [
+    12,
+    16
+  ],
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "peak_allocated_gpu_bytes": 13939356672,
+  "prompt": "<|startoftext|><|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.<|end|><|start|>user<|message|>Briefly explain why leaves look green.<|end|><|start|>assistant",
+  "token_count": 33,
+  "token_ids": [
+    199998,
+    200006,
+    17360,
+    200008,
+    3575,
+    553,
+    17554,
+    162016,
+    11,
+    261,
+    4410,
+    6439,
+    2359,
+    22203,
+    656,
+    7788,
+    17527,
+    13,
+    200007,
+    200006,
+    1428,
+    200008,
+    107015,
+    423,
+    16644,
+    4436,
+    15657,
+    1631,
+    8851,
+    13,
+    200007,
+    200006,
+    173781
+  ]
+}
