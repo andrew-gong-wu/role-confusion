@@ -65,3 +65,4 @@ mlruns/
 *.log
 tmp/
 temp/
+workspace/
