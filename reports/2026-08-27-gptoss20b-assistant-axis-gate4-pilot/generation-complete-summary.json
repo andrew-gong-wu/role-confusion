@@ -1,0 +1,53 @@
+{
+  "completed_at": "2026-08-27T15:02:00.054797+00:00",
+  "expected_new_generations": 19,
+  "finish_reasons": {
+    "length": 19
+  },
+  "generated_token_counts": [
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256
+  ],
+  "new_generations": 19,
+  "peak_allocated_gpu_bytes": 14115236352,
+  "response_token_counts": [
+    241,
+    239,
+    243,
+    240,
+    238,
+    237,
+    234,
+    240,
+    241,
+    232,
+    242,
+    239,
+    235,
+    238,
+    239,
+    237,
+    233,
+    227,
+    225
+  ],
+  "scope": "complete",
+  "total_saved_generations": 26
+}

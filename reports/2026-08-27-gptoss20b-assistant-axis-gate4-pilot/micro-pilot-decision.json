@@ -1,0 +1,15 @@
+{
+  "accepted_count": 4,
+  "accepted_personas": [
+    "anarchist",
+    "mystic",
+    "pirate",
+    "tutor"
+  ],
+  "activation_capture_ok": true,
+  "evaluated_at": "2026-08-27T15:01:06.321705+00:00",
+  "next_generation_count": 19,
+  "parse_failures": 0,
+  "pass": true,
+  "persona_responses": 6
+}
