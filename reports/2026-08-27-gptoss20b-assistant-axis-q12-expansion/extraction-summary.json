@@ -1,0 +1,29 @@
+{
+  "accumulation_dtype": "float32",
+  "activation_sites": [
+    "pre_mlp",
+    "block_output"
+  ],
+  "completed_at": "2026-08-27T15:31:51.578555+00:00",
+  "included_default_responses": 12,
+  "included_persona_responses": 100,
+  "included_responses": 112,
+  "layers": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "peak_allocated_gpu_bytes": 15056534528,
+  "saved_dtype": "float32",
+  "token_rule": "final-channel assistant content tokens only; reasoning/analysis excluded"
+}

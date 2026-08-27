@@ -1,0 +1,14 @@
+{
+  "boundary_failures": 0,
+  "completed_at": "2026-08-27T15:31:07Z",
+  "judge_overrides": 0,
+  "review_status": "all_selected_scores_consistent",
+  "reviewed_count": 48,
+  "reviewed_score_counts": {
+    "0": 5,
+    "1": 21,
+    "2": 18,
+    "3": 4
+  },
+  "selection_rule": "all score-0/1/2 or parse-boundary cases plus one accepted score-3 response per persona family"
+}

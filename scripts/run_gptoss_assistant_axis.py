@@ -21,6 +21,7 @@ import subprocess
 import sys
 import warnings
 from datetime import datetime, timezone
+from itertools import combinations
 from pathlib import Path
 from typing import Any
 
@@ -75,6 +76,19 @@ PERSONA_FAMILIES = {
 MICRO_PERSONAS = ["tutor", "librarian", "engineer", "pirate", "mystic", "anarchist"]
 QUESTION_IDS = [0, 5]
 QUESTION_EXPANSION_IDS = [0, 2, 5, 51, 119, 190]
+QUESTION_EXPANSION_12_IDS = [0, 2, 5, 14, 39, 51, 69, 95, 119, 128, 171, 190]
+QUESTION_SELECTION_RATIONALES = {
+    2: "factual technical explanation",
+    14: "educational design",
+    39: "practical negotiation",
+    51: "interpersonal and emotional support",
+    69: "scientific explanation",
+    95: "relationship advice",
+    119: "unfamiliar-tool problem solving",
+    128: "decision-making and metacognition",
+    171: "low-stakes ambiguous observation",
+    190: "workplace ethical pressure",
+}
 JUDGE_MODEL = "gpt-4.1-mini"
 
 
@@ -917,8 +931,9 @@ def command_seed_question_expansion(args: argparse.Namespace) -> None:
     source_root = gate4_dir(args.source_run_dir)
     target_root = gate4_dir(args.run_dir)
     manifest = load_gate4_manifest(args.run_dir)
-    if sorted(manifest.question_id.unique().tolist()) != QUESTION_EXPANSION_IDS:
-        raise RuntimeError("Target manifest is not the preregistered six-question expansion")
+    target_questions = sorted(int(value) for value in manifest.question_id.unique())
+    if target_questions not in [QUESTION_EXPANSION_IDS, QUESTION_EXPANSION_12_IDS]:
+        raise RuntimeError("Target manifest is not a preregistered question expansion")
     for gate_name in ["gate-1-environment", "gate-2-hook-smoke", "gate-3-role-probes"]:
         source = args.source_run_dir / gate_name
         target = args.run_dir / gate_name
@@ -946,8 +961,10 @@ def command_seed_question_expansion(args: argparse.Namespace) -> None:
             }
         )
     responses = read_jsonl_gz(target_root / "responses.jsonl.gz")
-    if len(responses) != 26 or sorted({int(row["question_id"]) for row in responses}) != QUESTION_IDS:
-        raise RuntimeError("Source run does not contain the exact completed two-question pilot")
+    source_questions = sorted({int(row["question_id"]) for row in responses})
+    expected_source_count = 13 * len(source_questions)
+    if len(responses) != expected_source_count or not set(source_questions).issubset(target_questions):
+        raise RuntimeError("Source run is not an exact completed subset of the target question panel")
     if not {row["response_id"] for row in responses}.issubset(set(manifest.response_id)):
         raise RuntimeError("Seeded responses do not match the expansion manifest")
     if any(row["source_sha256"] != row["target_sha256"] for row in copied):
@@ -957,14 +974,19 @@ def command_seed_question_expansion(args: argparse.Namespace) -> None:
         {
             "created_at": utc_now(),
             "source_run": str(args.source_run_dir),
-            "source_questions": QUESTION_IDS,
-            "target_questions": QUESTION_EXPANSION_IDS,
+            "source_questions": source_questions,
+            "target_questions": target_questions,
+            "added_questions": sorted(set(target_questions) - set(source_questions)),
+            "selection_rationales": {
+                str(question_id): QUESTION_SELECTION_RATIONALES[question_id]
+                for question_id in sorted(set(target_questions) - set(source_questions))
+            },
             "reused_generation_count": len(responses),
-            "new_generation_count": 13 * len(QUESTION_EXPANSION_IDS) - len(responses),
+            "new_generation_count": len(manifest) - len(responses),
             "copied_artifacts": copied,
         },
     )
-    print(json.dumps({"stage": "seed-question-expansion", "status": "complete", "reused": len(responses), "new": 52}, sort_keys=True))
+    print(json.dumps({"stage": "seed-question-expansion", "status": "complete", "reused": len(responses), "new": len(manifest) - len(responses)}, sort_keys=True))
 
 
 def parse_final_response(tokenizer: Any, generated_ids: list[int]) -> tuple[str, str]:
@@ -1937,6 +1959,92 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
     print(json.dumps({"stage": "analyze", "status": "complete", "recommendation": recommendation, "promising_layers": promising_sites}, sort_keys=True))
 
 
+def command_question_split_sensitivity(args: argparse.Namespace) -> None:
+    root = gate4_dir(args.run_dir)
+    analysis = root / "analysis"
+    output_csv = analysis / "balanced-question-split-sensitivity.csv"
+    output_json = analysis / "balanced-question-split-sensitivity-summary.json"
+    if output_csv.exists() or output_json.exists():
+        raise FileExistsError("Refusing to overwrite question-split sensitivity artifacts")
+    metadata = pd.read_csv(root / "activation-manifest.csv")
+    question_ids = sorted(int(value) for value in metadata.question_id.unique())
+    if len(question_ids) < 4 or len(question_ids) % 2:
+        raise RuntimeError("Balanced split sensitivity requires an even panel of at least four questions")
+    preregistered = set(question_ids[::2])
+    rows = []
+    summaries = []
+    for site in ["pre_mlp", "block_output"]:
+        artifact = torch.load(
+            root / "activations" / f"{site}-response-means.pt",
+            map_location="cpu", weights_only=True,
+        )
+        response_ids = artifact["response_ids"]
+        layers = artifact["layers"]
+        values = artifact["vectors"].float().numpy()
+        index = {response_id: position for position, response_id in enumerate(response_ids)}
+        for layer_position, layer in enumerate(layers):
+            question_axes = {}
+            for question_id in question_ids:
+                default_id = metadata.loc[
+                    (~metadata.is_persona.astype(bool)) & (metadata.question_id == question_id), "response_id"
+                ].iloc[0]
+                persona_ids = metadata.loc[
+                    metadata.is_persona.astype(bool) & (metadata.question_id == question_id), "response_id"
+                ].tolist()
+                question_axes[question_id] = values[index[default_id], layer_position] - values[
+                    [index[response_id] for response_id in persona_ids], layer_position
+                ].mean(axis=0)
+            layer_values = []
+            preregistered_value = None
+            for remainder in combinations(question_ids[1:], len(question_ids) // 2 - 1):
+                left = {question_ids[0], *remainder}
+                right = set(question_ids) - left
+                left_axis = np.mean([question_axes[value] for value in sorted(left)], axis=0)
+                right_axis = np.mean([question_axes[value] for value in sorted(right)], axis=0)
+                cosine = vector_cosine(left_axis, right_axis)
+                is_preregistered = left == preregistered
+                if is_preregistered:
+                    preregistered_value = cosine
+                layer_values.append(cosine)
+                rows.append(
+                    {
+                        "activation_site": site,
+                        "layer": layer,
+                        "left_questions": "|".join(map(str, sorted(left))),
+                        "right_questions": "|".join(map(str, sorted(right))),
+                        "cosine": cosine,
+                        "preregistered_split": is_preregistered,
+                    }
+                )
+            layer_array = np.asarray(layer_values)
+            summaries.append(
+                {
+                    "activation_site": site,
+                    "layer": layer,
+                    "balanced_partition_count": len(layer_values),
+                    "preregistered_cosine": preregistered_value,
+                    "median": float(np.median(layer_array)),
+                    "p05": float(np.quantile(layer_array, 0.05)),
+                    "p95": float(np.quantile(layer_array, 0.95)),
+                    "fraction_at_least_0_8": float(np.mean(layer_array >= 0.8)),
+                    "preregistered_percentile": float(np.mean(layer_array <= preregistered_value)),
+                }
+            )
+    pd.DataFrame(rows).to_csv(output_csv, index=False)
+    write_json(
+        output_json,
+        {
+            "completed_at": utc_now(),
+            "status": "post_hoc_split_sensitivity",
+            "question_ids": question_ids,
+            "split_size": len(question_ids) // 2,
+            "unique_balanced_partitions": len(list(combinations(question_ids[1:], len(question_ids) // 2 - 1))),
+            "summary_by_layer": summaries,
+        },
+    )
+    print(json.dumps({"stage": "question-split-sensitivity", "status": "complete", "rows": len(rows)}, sort_keys=True))
+
+
 def command_finalize(args: argparse.Namespace) -> None:
     if not (args.run_dir / "gate-3-role-probes").is_dir():
         raise RuntimeError("Gate 3 diagnostics must exist before finalizing")
@@ -2317,14 +2425,23 @@ def command_report_question_expansion(args: argparse.Namespace) -> None:
     analysis = root / "analysis"
     decision = json.loads((analysis / "gate-decision.json").read_text())
     judge = json.loads((root / "judge-summary.json").read_text())
+    manual_review = json.loads((root / "manual-review-summary.json").read_text())
     extraction = json.loads((root / "extraction-summary.json").read_text())
     reuse = json.loads((root / "question-expansion-reuse-provenance.json").read_text())
     manifest = pd.read_csv(root / "prepare-personas/persona-manifest.csv")
     stability = pd.read_csv(analysis / "stability.csv")
     heldout = pd.read_csv(analysis / "heldout-separation.csv")
     pca = pd.read_csv(analysis / "pca-metrics.csv")
+    sensitivity_path = analysis / "balanced-question-split-sensitivity-summary.json"
+    sensitivity = json.loads(sensitivity_path.read_text()) if sensitivity_path.is_file() else None
     question_rows = manifest[["question_id", "question"]].drop_duplicates().sort_values("question_id")
     question_lines = [f"- {row.question_id}: {row.question}" for row in question_rows.itertuples(index=False)]
+    question_count = len(question_rows)
+    half_size = question_count // 2
+    rationale_lines = [
+        f"- {question_id}: {rationale}"
+        for question_id, rationale in reuse.get("selection_rationales", {}).items()
+    ]
 
     split = stability[stability.metric == "split_half_question_cosine"][
         ["activation_site", "layer", "value"]
@@ -2335,7 +2452,7 @@ def command_report_question_expansion(args: argparse.Namespace) -> None:
     heldout_summary = heldout.groupby(["activation_site", "layer"], as_index=False)[
         ["auroc", "balanced_accuracy"]
     ].mean().rename(columns={"auroc": "heldout_auroc_mean", "balanced_accuracy": "heldout_balanced_accuracy_mean"})
-    selected = pca[pca.layer.isin([12, 16])].merge(
+    selected = pca[pca.layer.isin([12, 16, 18])].merge(
         split, on=["activation_site", "layer"]
     ).merge(heldout_summary, on=["activation_site", "layer"])
     args.report_dir.mkdir(parents=True)
@@ -2359,38 +2476,41 @@ def command_report_question_expansion(args: argparse.Namespace) -> None:
             f"{site_heldout.auroc.mean():.3f} | {site_heldout.balanced_accuracy.mean():.3f} |"
         )
     copy_paths = [
-        root / "prepare-personas/persona-manifest.csv",
         root / "prepare-personas/upstream-provenance.json",
         root / "prepare-personas/generation-settings.json",
         root / "prepare-personas/user-override.json",
         root / "question-expansion-reuse-provenance.json",
         root / "generation-complete-summary.json",
-        root / "judge-scores.csv",
         root / "judge-summary.json",
-        root / "inclusion-manifest.csv",
         root / "manual-review-summary.json",
         root / "extraction-summary.json",
         analysis / "gate-decision.json",
-        analysis / "pca-metrics.csv",
-        analysis / "heldout-separation.csv",
-        analysis / "stability.csv",
-        analysis / "projection-distribution.csv",
-        analysis / "bootstrap-confidence.csv",
-        analysis / "role-axis-cosines.csv",
-        analysis / "principal-angles.csv",
     ]
     for source in copy_paths:
         shutil.copy2(source, args.report_dir / source.name)
+    sensitivity_lines = []
+    if sensitivity is not None:
+        shutil.copy2(sensitivity_path, args.report_dir / sensitivity_path.name)
+        for site in ["pre_mlp", "block_output"]:
+            row = next(
+                value for value in sensitivity["summary_by_layer"]
+                if value["activation_site"] == site and value["layer"] == 18
+            )
+            sensitivity_lines.append(
+                f"| {site} | {row['preregistered_cosine']:.3f} | {row['median']:.3f} | "
+                f"{row['p05']:.3f}–{row['p95']:.3f} | {row['fraction_at_least_0_8']:.1%} | "
+                f"{row['preregistered_percentile']:.1%} |"
+            )
 
-    readme = f"""# GPT-OSS-20B Assistant Axis six-question expansion
+    readme = f"""# GPT-OSS-20B Assistant Axis {question_count}-question expansion
 
 Date: 2026-08-27
 
 ## Outcome
 
 The explicitly authorized question expansion is complete. It retained the same
-12-persona panel, reused the original 26 generations exactly, and added four
-official extraction questions (52 new generations). The result remains
+12-persona panel, reused {reuse['reused_generation_count']} prior generations exactly, and added
+{len(reuse['added_questions'])} official extraction questions ({reuse['new_generation_count']} new generations). The result is
 **stop**: neither activation site reached the preregistered 0.80 split-half
 cosine at any tested layer.
 
@@ -2405,48 +2525,61 @@ source of instability.
 - Half A: {decision['question_split_halves'][0]}
 - Half B: {decision['question_split_halves'][1]}
 
-The four added questions were selected before generation to cover factual
-explanation, interpersonal support, unfamiliar-tool problem solving, and
-workplace ethical pressure.
+The added questions were selected before generation using these strata:
+
+{chr(10).join(rationale_lines)}
 
 ## Compute and inclusion
 
-- Saved responses: 78 ({reuse['reused_generation_count']} reused, {reuse['new_generation_count']} new)
+- Saved responses: {len(manifest)} ({reuse['reused_generation_count']} reused, {reuse['new_generation_count']} new)
 - Persona judgments: {judge['persona_judgments']} ({judge['new_judgments_this_command']} new)
 - Judge parse failures: {judge['parse_failures']}
-- Included persona responses: {judge['accepted_response_count']}/72
+- Included persona responses: {judge['accepted_response_count']}/{judge['persona_judgments']}
 - Personas represented after filtering: {judge['personas_with_accepted_response']}/12
 - Included activation records: {extraction['included_responses']}
-- Manual review: 28 selected cases; zero score overrides or boundary failures
+- Manual review: {manual_review['reviewed_count']} selected cases; zero score overrides or boundary failures
 
 ## Stability summary across layers 8–20
 
-| Site | Three-vs-three cosine range | Median pairwise-question cosine | Min leave-one-question-out | Min leave-one-persona-out | Mean held-out AUROC | Mean held-out balanced accuracy |
+| Site | {half_size}-vs-{half_size} cosine range | Median pairwise-question cosine | Min leave-one-question-out | Min leave-one-persona-out | Mean held-out AUROC | Mean held-out balanced accuracy |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 {chr(10).join(site_lines)}
 
-The three-question-vs-three-question comparison improved over the original
+The {half_size}-question-vs-{half_size}-question comparison is the primary
+stability result. It can be compared with the original
 single-question comparison, but remained below 0.80. Low pairwise-question
 cosines show that the individual question axes are not measuring one common
 direction. High leave-one-persona-out stability shows that adding personas is
 unlikely to repair that disagreement.
 
+## Post-hoc balanced-split sensitivity
+
+| Site at layer 18 | Preregistered cosine | Median across balanced splits | 5th–95th percentile | Splits at least 0.80 | Preregistered percentile |
+| --- | ---: | ---: | ---: | ---: | ---: |
+{chr(10).join(sensitivity_lines) if sensitivity_lines else '| Not computed | | | | | |'}
+
+This diagnostic enumerates every unique balanced question partition. It is
+post-hoc and does not replace the preregistered gate. At layer 18, the selected
+split is typical rather than unusually favorable, supporting the inference
+that averaging more questions is improving stability.
+
 ## Selected layers
 
-| Site | Layer | Three-vs-three cosine | Held-out AUROC | Held-out balanced accuracy | Axis–PC1 cosine |
+| Site | Layer | {half_size}-vs-{half_size} cosine | Held-out AUROC | Held-out balanced accuracy | Axis–PC1 cosine |
 | --- | ---: | ---: | ---: | ---: | ---: |
 {chr(10).join(table_lines)}
 
 ## Recommendation
 
-Do not expand to 50 or 250 personas yet. First revise the estimator or identify
-a semantically coherent question subset, then validate that choice on untouched
-questions. Gate 5 CoT-Forgery generation and steering remain unstarted.
+Do not expand to 50 or 250 personas yet. The layer-18 result is close enough to
+justify another preregistered question expansion, using untouched questions and
+fixed evaluation rules. Gate 5 CoT-Forgery generation and steering remain
+unstarted.
 
 ## Reproducibility
 
 - Persistent run: `{args.run_dir}`
-- Source two-question run: `{reuse['source_run']}`
+- Source reused run: `{reuse['source_run']}`
 - Official Assistant Axis commit: `{ASSISTANT_AXIS_COMMIT}`
 - Model revision: `{MODEL_REVISION}`
 - Generation: greedy, seed 123, lowest reasoning effort, 256-token cap
@@ -2598,7 +2731,7 @@ def parse_args() -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
     for name in [
         "inventory", "hook-smoke", "role-probes",
-        "extract", "analyze", "finalize",
+        "extract", "analyze", "question-split-sensitivity", "finalize",
     ]:
         child = subparsers.add_parser(name)
         child.add_argument("--run-dir", type=Path, required=True)
@@ -2647,6 +2780,8 @@ def main() -> int:
         command_extract_personas(args)
     elif args.command == "analyze":
         command_analyze_personas(args)
+    elif args.command == "question-split-sensitivity":
+        command_question_split_sensitivity(args)
     elif args.command == "finalize":
         command_finalize(args)
     elif args.command == "report":
