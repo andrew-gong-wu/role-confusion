@@ -1,0 +1,113 @@
+{
+  "added_questions": [
+    27,
+    40,
+    58,
+    74,
+    108,
+    125,
+    145,
+    182
+  ],
+  "copied_artifacts": [
+    {
+      "path": "responses.jsonl.gz",
+      "source_sha256": "10b83f47f6c6582f9db68c5683844176eed4765dfac22b478d37fae716a65be7",
+      "target_sha256": "10b83f47f6c6582f9db68c5683844176eed4765dfac22b478d37fae716a65be7"
+    },
+    {
+      "path": "judge-raw.jsonl.gz",
+      "source_sha256": "35d07a1ece4ec3afe4f4cf2d2639cea227c35bb7780480cb3f7273fc2bf721a4",
+      "target_sha256": "35d07a1ece4ec3afe4f4cf2d2639cea227c35bb7780480cb3f7273fc2bf721a4"
+    },
+    {
+      "path": "generation-micro-summary.json",
+      "source_sha256": "4e62a2eb747ad910e143ce439dbce63c5c4b5998e1538effe6b3c2542a2bf864",
+      "target_sha256": "4e62a2eb747ad910e143ce439dbce63c5c4b5998e1538effe6b3c2542a2bf864"
+    },
+    {
+      "path": "micro-hook-validation.json",
+      "source_sha256": "8cd9cd6b1376bb5fd256bdb54442f21b805191719b49861839df7e5c69d1f8a8",
+      "target_sha256": "8cd9cd6b1376bb5fd256bdb54442f21b805191719b49861839df7e5c69d1f8a8"
+    },
+    {
+      "path": "micro-pilot-decision.json",
+      "source_sha256": "754c317e55b341a05cc41e8fb7ffa7f8a8da26a825c9dd990610e835a22ee7a4",
+      "target_sha256": "754c317e55b341a05cc41e8fb7ffa7f8a8da26a825c9dd990610e835a22ee7a4"
+    }
+  ],
+  "created_at": "2026-08-27T15:53:04.602616+00:00",
+  "linked_prior_gates": [
+    {
+      "gate": "gate-1-environment",
+      "source": "/workspace/role-probe-storage/outputs/gptoss20b-assistant-axis-q6-20260827-1520/gate-1-environment"
+    },
+    {
+      "gate": "gate-2-hook-smoke",
+      "source": "/workspace/role-probe-storage/outputs/gptoss20b-assistant-axis-q6-20260827-1520/gate-2-hook-smoke"
+    },
+    {
+      "gate": "gate-3-role-probes",
+      "source": "/workspace/role-probe-storage/outputs/gptoss20b-assistant-axis-q6-20260827-1520/gate-3-role-probes"
+    }
+  ],
+  "new_generation_count": 104,
+  "preregistered_primary_validation": {
+    "activation_sites": [
+      "pre_mlp",
+      "block_output"
+    ],
+    "heldout_auroc_threshold": 0.8,
+    "layer": 18,
+    "split_half_cosine_threshold": 0.8,
+    "split_rule": "sorted question IDs alternated into equal halves"
+  },
+  "reused_generation_count": 156,
+  "selection_rationales": {
+    "108": "low-stakes social judgment",
+    "125": "emotional and workload support",
+    "145": "multi-step travel planning",
+    "182": "epistemic judgment",
+    "27": "clear safety guidance",
+    "40": "simple factual explanation",
+    "58": "professional disagreement",
+    "74": "procedural planning"
+  },
+  "source_questions": [
+    0,
+    2,
+    5,
+    14,
+    39,
+    51,
+    69,
+    95,
+    119,
+    128,
+    171,
+    190
+  ],
+  "source_run": "/workspace/role-probe-storage/outputs/gptoss20b-assistant-axis-q12-20260827-1530",
+  "target_questions": [
+    0,
+    2,
+    5,
+    14,
+    27,
+    39,
+    40,
+    51,
+    58,
+    69,
+    74,
+    95,
+    108,
+    119,
+    125,
+    128,
+    145,
+    171,
+    182,
+    190
+  ]
+}
