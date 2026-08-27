@@ -1,0 +1,45 @@
+{
+  "copied_artifacts": [
+    {
+      "path": "responses.jsonl.gz",
+      "source_sha256": "9edb44279414b02d7cfdcbd4193a3491ca09ff2fa97093227f7a5aa6d5c0a1f1",
+      "target_sha256": "9edb44279414b02d7cfdcbd4193a3491ca09ff2fa97093227f7a5aa6d5c0a1f1"
+    },
+    {
+      "path": "judge-raw.jsonl.gz",
+      "source_sha256": "5a7cd88f7404244c1f3253f302fb94c037cb766bcb76844876ee2a358c75fa90",
+      "target_sha256": "5a7cd88f7404244c1f3253f302fb94c037cb766bcb76844876ee2a358c75fa90"
+    },
+    {
+      "path": "generation-micro-summary.json",
+      "source_sha256": "4e62a2eb747ad910e143ce439dbce63c5c4b5998e1538effe6b3c2542a2bf864",
+      "target_sha256": "4e62a2eb747ad910e143ce439dbce63c5c4b5998e1538effe6b3c2542a2bf864"
+    },
+    {
+      "path": "micro-hook-validation.json",
+      "source_sha256": "8cd9cd6b1376bb5fd256bdb54442f21b805191719b49861839df7e5c69d1f8a8",
+      "target_sha256": "8cd9cd6b1376bb5fd256bdb54442f21b805191719b49861839df7e5c69d1f8a8"
+    },
+    {
+      "path": "micro-pilot-decision.json",
+      "source_sha256": "754c317e55b341a05cc41e8fb7ffa7f8a8da26a825c9dd990610e835a22ee7a4",
+      "target_sha256": "754c317e55b341a05cc41e8fb7ffa7f8a8da26a825c9dd990610e835a22ee7a4"
+    }
+  ],
+  "created_at": "2026-08-27T15:17:20.445583+00:00",
+  "new_generation_count": 52,
+  "reused_generation_count": 26,
+  "source_questions": [
+    0,
+    5
+  ],
+  "source_run": "/workspace/role-probe-storage/outputs/gptoss20b-assistant-axis-20260827-1426",
+  "target_questions": [
+    0,
+    2,
+    5,
+    51,
+    119,
+    190
+  ]
+}

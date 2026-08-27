@@ -74,6 +74,7 @@ PERSONA_FAMILIES = {
 }
 MICRO_PERSONAS = ["tutor", "librarian", "engineer", "pirate", "mystic", "anarchist"]
 QUESTION_IDS = [0, 5]
+QUESTION_EXPANSION_IDS = [0, 2, 5, 51, 119, 190]
 JUDGE_MODEL = "gpt-4.1-mini"
 
 
@@ -788,6 +789,13 @@ def load_gate4_manifest(run_dir: Path) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def parse_question_ids(value: str) -> list[int]:
+    question_ids = [int(item.strip()) for item in value.split(",") if item.strip()]
+    if len(question_ids) < 2 or len(question_ids) != len(set(question_ids)):
+        raise argparse.ArgumentTypeError("Question IDs must contain at least two unique integers")
+    return sorted(question_ids)
+
+
 def command_prepare_personas(args: argparse.Namespace) -> None:
     root = gate4_dir(args.run_dir)
     root.mkdir(parents=True, exist_ok=True)
@@ -800,6 +808,10 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
         int(row["id"]): row["question"]
         for row in [json.loads(line) for line in question_path.read_text(encoding="utf-8").splitlines()]
     }
+    question_ids = getattr(args, "question_ids", None) or QUESTION_IDS
+    missing_questions = sorted(set(question_ids) - set(questions))
+    if missing_questions:
+        raise RuntimeError(f"Unknown official extraction question IDs: {missing_questions}")
     rows = []
     file_records = []
     conditions = [("default_assistant", "assistant", "default", False)] + [
@@ -818,7 +830,7 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
                 "eval_prompt_sha256": sha256_bytes(role_data["eval_prompt"].encode()),
             }
         )
-        for question_id in QUESTION_IDS:
+        for question_id in question_ids:
             response_id = f"{persona}__q{question_id}"
             messages = [
                 {"role": "system", "content": instruction},
@@ -842,7 +854,8 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
                 }
             )
     frame = pd.DataFrame(rows)
-    if len(frame) != 26 or int(frame.micro_pilot.sum()) != 7:
+    expected_responses = 13 * len(question_ids)
+    if len(frame) != expected_responses or int(frame.micro_pilot.sum()) != 7:
         raise AssertionError("Unexpected 12-persona Gate 4 panel size")
     frame.to_csv(temporary / "persona-manifest.csv", index=False)
     write_json(
@@ -854,7 +867,7 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
             "question_file": {
                 "path": str(question_path.relative_to(ASSISTANT_AXIS_ROOT)),
                 "sha256": sha256_file(question_path),
-                "selected_ids": QUESTION_IDS,
+                "selected_ids": question_ids,
             },
             "role_files": file_records,
         },
@@ -866,10 +879,10 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
             "model_revision": MODEL_REVISION,
             "persona_count": 12,
             "default_condition_count": 1,
-            "questions": QUESTION_IDS,
-            "target_generation_budget": 26,
+            "questions": question_ids,
+            "target_generation_budget": expected_responses,
             "micro_generation_count": 7,
-            "completion_generation_count": 19,
+            "completion_generation_count": expected_responses - 7,
             "instruction_variant": 0,
             "max_new_tokens": 256,
             "do_sample": False,
@@ -881,7 +894,8 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
             "judge_threshold": 3,
             "user_override": (
                 "On 2026-08-27 the user explicitly authorized Gate 4 after review of the "
-                "Gate 3 numerical stop, with a limited persona panel."
+                "Gate 3 numerical stop, with a limited persona panel, then explicitly "
+                "authorized adding more questions after reviewing the two-question result."
             ),
         },
     )
@@ -889,13 +903,68 @@ def command_prepare_personas(args: argparse.Namespace) -> None:
         temporary / "user-override.json",
         {
             "authorized_at": utc_now(),
-            "scope": "Gate 4 only",
+            "scope": "Gate 4 question expansion only",
             "persona_count": 12,
+            "question_ids": question_ids,
             "note": "Gate 5 remains unauthorized after the Gate 3 stop.",
         },
     )
     temporary.rename(final)
-    print(json.dumps({"stage": "prepare-personas", "status": "complete", "personas": 12, "responses": 26}, sort_keys=True))
+    print(json.dumps({"stage": "prepare-personas", "status": "complete", "personas": 12, "questions": question_ids, "responses": expected_responses}, sort_keys=True))
+
+
+def command_seed_question_expansion(args: argparse.Namespace) -> None:
+    source_root = gate4_dir(args.source_run_dir)
+    target_root = gate4_dir(args.run_dir)
+    manifest = load_gate4_manifest(args.run_dir)
+    if sorted(manifest.question_id.unique().tolist()) != QUESTION_EXPANSION_IDS:
+        raise RuntimeError("Target manifest is not the preregistered six-question expansion")
+    for gate_name in ["gate-1-environment", "gate-2-hook-smoke", "gate-3-role-probes"]:
+        source = args.source_run_dir / gate_name
+        target = args.run_dir / gate_name
+        if target.exists():
+            raise FileExistsError(f"Refusing to overwrite seeded gate: {target}")
+        shutil.copytree(source, target)
+    copied = []
+    for relative in [
+        "responses.jsonl.gz",
+        "judge-raw.jsonl.gz",
+        "generation-micro-summary.json",
+        "micro-hook-validation.json",
+        "micro-pilot-decision.json",
+    ]:
+        source = source_root / relative
+        target = target_root / relative
+        if target.exists():
+            raise FileExistsError(f"Refusing to overwrite expansion seed: {target}")
+        shutil.copy2(source, target)
+        copied.append(
+            {
+                "path": relative,
+                "source_sha256": sha256_file(source),
+                "target_sha256": sha256_file(target),
+            }
+        )
+    responses = read_jsonl_gz(target_root / "responses.jsonl.gz")
+    if len(responses) != 26 or sorted({int(row["question_id"]) for row in responses}) != QUESTION_IDS:
+        raise RuntimeError("Source run does not contain the exact completed two-question pilot")
+    if not {row["response_id"] for row in responses}.issubset(set(manifest.response_id)):
+        raise RuntimeError("Seeded responses do not match the expansion manifest")
+    if any(row["source_sha256"] != row["target_sha256"] for row in copied):
+        raise AssertionError("A seeded expansion artifact changed during copy")
+    write_json(
+        target_root / "question-expansion-reuse-provenance.json",
+        {
+            "created_at": utc_now(),
+            "source_run": str(args.source_run_dir),
+            "source_questions": QUESTION_IDS,
+            "target_questions": QUESTION_EXPANSION_IDS,
+            "reused_generation_count": len(responses),
+            "new_generation_count": 13 * len(QUESTION_EXPANSION_IDS) - len(responses),
+            "copied_artifacts": copied,
+        },
+    )
+    print(json.dumps({"stage": "seed-question-expansion", "status": "complete", "reused": len(responses), "new": 52}, sort_keys=True))
 
 
 def parse_final_response(tokenizer: Any, generated_ids: list[int]) -> tuple[str, str]:
@@ -988,11 +1057,11 @@ def command_generate_personas(args: argparse.Namespace) -> None:
             raise RuntimeError("Micro-pilot did not pass")
         targets = manifest
     targets = targets[~targets.response_id.isin(existing)].copy()
-    expected_new = 7 if args.scope == "micro" and not existing else 19 if args.scope == "complete" else len(targets)
+    expected_new = len(targets)
     if args.scope == "micro" and len(existing) == 0 and len(targets) != 7:
         raise AssertionError("Micro-pilot must contain exactly seven new generations")
-    if args.scope == "complete" and len(existing) == 7 and len(targets) != 19:
-        raise AssertionError("Complete panel must add exactly nineteen generations")
+    if args.scope == "complete" and len(existing) == 7 and len(targets) != len(manifest) - 7:
+        raise AssertionError("Complete panel size does not match its prepared manifest")
     if targets.empty:
         print(json.dumps({"stage": "generate", "scope": args.scope, "status": "already-complete"}, sort_keys=True))
         return
@@ -1151,8 +1220,11 @@ def command_score_personas(args: argparse.Namespace) -> None:
                 manifest.is_persona.astype(str).str.lower().isin(["true", "1"]), "response_id"
             ]
         )
-        if len(responses) != 26 or len(target_ids) != 24:
-            raise RuntimeError("The complete 26-response panel must exist before final scoring")
+        expected_persona_responses = int(
+            manifest.is_persona.astype(str).str.lower().isin(["true", "1"]).sum()
+        )
+        if len(responses) != len(manifest) or len(target_ids) != expected_persona_responses:
+            raise RuntimeError("The complete prepared response panel must exist before final scoring")
     judge_path = root / "judge-raw.jsonl.gz"
     existing_rows = read_jsonl_gz(judge_path)
     existing = {row["response_id"]: row for row in existing_rows}
@@ -1339,7 +1411,7 @@ def command_extract_personas(args: argparse.Namespace) -> None:
     responses = {row["response_id"]: row for row in read_jsonl_gz(root / "responses.jsonl.gz")}
     inclusion = pd.read_csv(root / "inclusion-manifest.csv")
     included = inclusion[inclusion.included.astype(str).str.lower().isin(["true", "1"])].copy()
-    if len(responses) != 26 or included.empty:
+    if len(responses) != len(load_gate4_manifest(args.run_dir)) or included.empty:
         raise RuntimeError("Complete response panel and inclusion manifest are required")
     ids = included.response_id.tolist()
     tokenizer = AutoTokenizer.from_pretrained(
@@ -1464,6 +1536,7 @@ def fast_pc1(matrix: np.ndarray) -> np.ndarray:
 def command_analyze_personas(args: argparse.Namespace) -> None:
     root = gate4_dir(args.run_dir)
     metadata = pd.read_csv(root / "activation-manifest.csv")
+    question_ids = sorted(int(value) for value in metadata.question_id.unique())
     inclusion = pd.read_csv(root / "inclusion-manifest.csv")
     judge_summary = json.loads((root / "judge-summary.json").read_text())
     responses = {row["response_id"]: row for row in read_jsonl_gz(root / "responses.jsonl.gz")}
@@ -1501,7 +1574,7 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
         id_to_ix = {response_id: ix for ix, response_id in enumerate(ids)}
         default_ids = metadata.loc[~metadata.is_persona.astype(bool), "response_id"].tolist()
         persona_names = sorted(metadata.loc[metadata.is_persona.astype(bool), "persona"].unique())
-        if len(default_ids) != 2 or len(persona_names) < 6:
+        if len(default_ids) != len(question_ids) or len(question_ids) < 2 or len(persona_names) < 6:
             raise RuntimeError("Insufficient default or accepted persona activations")
         default_mean = values[[id_to_ix[key] for key in default_ids]].mean(axis=0)
         role_vector_map = {}
@@ -1585,7 +1658,7 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
                 )
 
             question_axes = {}
-            for question_id in QUESTION_IDS:
+            for question_id in question_ids:
                 question_default_ids = metadata.loc[
                     (~metadata.is_persona.astype(bool)) & (metadata.question_id == question_id), "response_id"
                 ].tolist()
@@ -1599,16 +1672,53 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
                         response_id = question_persona.loc[question_persona.persona == persona, "response_id"].iloc[0]
                         question_role_vectors.append(values[id_to_ix[response_id], layer_position])
                     question_axes[question_id] = question_default - np.mean(question_role_vectors, axis=0)
-            split_cosine = (
-                vector_cosine(question_axes[0], question_axes[5])
-                if set(question_axes) == {0, 5} else float("nan")
-            )
+            pairwise_question_cosines = []
+            leave_one_question_out_cosines = []
+            if set(question_axes) == set(question_ids):
+                first_half = question_ids[::2]
+                second_half = question_ids[1::2]
+                first_axis = np.mean([question_axes[question_id] for question_id in first_half], axis=0)
+                second_axis = np.mean([question_axes[question_id] for question_id in second_half], axis=0)
+                split_cosine = vector_cosine(first_axis, second_axis)
+                for left_position, left_question in enumerate(question_ids):
+                    for right_question in question_ids[left_position + 1:]:
+                        pairwise_cosine = vector_cosine(question_axes[left_question], question_axes[right_question])
+                        pairwise_question_cosines.append(pairwise_cosine)
+                        stability_rows.append(
+                            {
+                                "activation_site": site,
+                                "layer": layer,
+                                "metric": "pairwise_question_cosine",
+                                "held_out": f"q{left_question}_vs_q{right_question}",
+                                "value": pairwise_cosine,
+                            }
+                        )
+                aggregate_question_axis = np.mean(list(question_axes.values()), axis=0)
+                for question_id in question_ids:
+                    reduced_question_axis = np.mean(
+                        [value for key, value in question_axes.items() if key != question_id], axis=0
+                    )
+                    loqo_cosine = vector_cosine(aggregate_question_axis, reduced_question_axis)
+                    leave_one_question_out_cosines.append(loqo_cosine)
+                    stability_rows.append(
+                        {
+                            "activation_site": site,
+                            "layer": layer,
+                            "metric": "leave_one_question_out_cosine",
+                            "held_out": f"q{question_id}",
+                            "value": loqo_cosine,
+                        }
+                    )
+            else:
+                first_half = question_ids[::2]
+                second_half = question_ids[1::2]
+                split_cosine = float("nan")
             stability_rows.append(
                 {
                     "activation_site": site,
                     "layer": layer,
                     "metric": "split_half_question_cosine",
-                    "held_out": "q0_vs_q5",
+                    "held_out": "|".join(f"q{value}" for value in first_half) + "_vs_" + "|".join(f"q{value}" for value in second_half),
                     "value": split_cosine,
                 }
             )
@@ -1623,28 +1733,30 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
                     }
                 )
             fold_metrics = []
-            for fold_ix, (train_question, test_question, heldout_personas) in enumerate(
-                [(0, 5, heldout_sets[0]), (5, 0, heldout_sets[1])]
+            for fold_ix, (train_questions, test_questions, heldout_personas) in enumerate(
+                [(first_half, second_half, heldout_sets[0]), (second_half, first_half, heldout_sets[1])]
             ):
                 train_default_ids = metadata.loc[
-                    (~metadata.is_persona.astype(bool)) & (metadata.question_id == train_question), "response_id"
+                    (~metadata.is_persona.astype(bool)) & metadata.question_id.isin(train_questions), "response_id"
                 ].tolist()
                 train_persona_rows = metadata[
                     metadata.is_persona.astype(bool)
-                    & (metadata.question_id == train_question)
+                    & metadata.question_id.isin(train_questions)
                     & (~metadata.persona.isin(heldout_personas))
                 ]
                 test_default_ids = metadata.loc[
-                    (~metadata.is_persona.astype(bool)) & (metadata.question_id == test_question), "response_id"
+                    (~metadata.is_persona.astype(bool)) & metadata.question_id.isin(test_questions), "response_id"
                 ].tolist()
                 test_persona_rows = metadata[
                     metadata.is_persona.astype(bool)
-                    & (metadata.question_id == test_question)
+                    & metadata.question_id.isin(test_questions)
                     & (metadata.persona.isin(heldout_personas))
                 ]
                 if not train_default_ids or not test_default_ids or len(train_persona_rows) < 3 or test_persona_rows.empty:
                     continue
-                train_default = values[id_to_ix[train_default_ids[0]], layer_position]
+                train_default = values[
+                    [id_to_ix[response_id] for response_id in train_default_ids], layer_position
+                ].mean(axis=0)
                 train_role = np.stack(
                     [values[id_to_ix[key], layer_position] for key in train_persona_rows.response_id]
                 )
@@ -1653,10 +1765,12 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
                 train_default_score = float(train_default @ fold_unit)
                 train_role_score = float((train_role @ fold_unit).mean())
                 threshold = 0.5 * (train_default_score + train_role_score)
-                test_vectors = [values[id_to_ix[test_default_ids[0]], layer_position]] + [
+                test_vectors = [
+                    values[id_to_ix[response_id], layer_position] for response_id in test_default_ids
+                ] + [
                     values[id_to_ix[key], layer_position] for key in test_persona_rows.response_id
                 ]
-                truth = np.asarray([1] + [0] * len(test_persona_rows), dtype=np.int32)
+                truth = np.asarray([1] * len(test_default_ids) + [0] * len(test_persona_rows), dtype=np.int32)
                 scores = np.asarray([vector @ fold_unit for vector in test_vectors])
                 pred = (scores >= threshold).astype(np.int32)
                 auroc = float(roc_auc_score(truth, scores))
@@ -1667,8 +1781,8 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
                         "activation_site": site,
                         "layer": layer,
                         "fold": fold_ix,
-                        "train_question": train_question,
-                        "test_question": test_question,
+                        "train_questions": "|".join(map(str, train_questions)),
+                        "test_questions": "|".join(map(str, test_questions)),
                         "heldout_personas": "|".join(sorted(heldout_personas)),
                         "n_train_personas": train_persona_rows.persona.nunique(),
                         "n_test_personas": test_persona_rows.persona.nunique(),
@@ -1772,6 +1886,9 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
                     "heldout_auroc_mean": mean_auroc,
                     "heldout_balanced_accuracy_mean": mean_balanced,
                     "split_half_cosine": split_cosine,
+                    "pairwise_question_cosine_min": min(pairwise_question_cosines) if pairwise_question_cosines else float("nan"),
+                    "pairwise_question_cosine_median": float(np.median(pairwise_question_cosines)) if pairwise_question_cosines else float("nan"),
+                    "leave_one_question_out_min_cosine": min(leave_one_question_out_cosines) if leave_one_question_out_cosines else float("nan"),
                     "leave_one_persona_out_min_cosine": min(lopo_cosines),
                     "default_projection_above_persona_mean": default_projection > mean_role_projection,
                     "axis_pc1_cosine": axis_pc1,
@@ -1805,13 +1922,15 @@ def command_analyze_personas(args: argparse.Namespace) -> None:
         {
             "completed_at": utc_now(),
             "pilot_personas": 12,
+            "question_ids": question_ids,
+            "question_split_halves": [question_ids[::2], question_ids[1::2]],
             "accepted_personas": int(metadata.loc[metadata.is_persona.astype(bool), "persona"].nunique()),
             "accepted_persona_responses": int(metadata.is_persona.astype(bool).sum()),
             "judge_parse_failure_rate": judge_summary["parse_failure_rate"],
             "promising_layers_by_site": promising_sites,
             "per_layer": site_decisions,
             "recommendation": recommendation,
-            "pilot_warning": "PCA and confidence intervals are diagnostics from 12 personas and two questions, not paper-quality estimates.",
+            "pilot_warning": f"PCA and confidence intervals are diagnostics from 12 personas and {len(question_ids)} questions, not paper-quality estimates.",
         },
     )
     temporary.rename(analysis_dir)
@@ -1842,19 +1961,40 @@ def command_finalize(args: argparse.Namespace) -> None:
     gate4_decision_path = args.run_dir / "gate-4-assistant-axis" / "analysis" / "gate-decision.json"
     if gate4_decision_path.is_file():
         gate4_decision = json.loads(gate4_decision_path.read_text())
+        gate4_root = gate4_dir(args.run_dir)
+        manifest = load_gate4_manifest(args.run_dir)
+        question_ids = sorted(int(value) for value in manifest.question_id.unique())
+        response_count = len(read_jsonl_gz(gate4_root / "responses.jsonl.gz"))
+        judge_summary = json.loads((gate4_root / "judge-summary.json").read_text())
+        judge_attempts = read_jsonl_gz(gate4_root / "judge-raw.jsonl.gz")
+        failed_attempts = sum(
+            bool(row.get("error")) and row.get("parsed_score") is None for row in judge_attempts
+        )
+        reuse_path = gate4_root / "question-expansion-reuse-provenance.json"
+        reuse = json.loads(reuse_path.read_text()) if reuse_path.is_file() else {}
+        reused_generations = int(reuse.get("reused_generation_count", 0))
+        is_question_expansion = len(question_ids) > len(QUESTION_IDS)
         summary = {
             "finalized_at": utc_now(),
-            "status": "gate_4_complete_recommendation_stop",
+            "status": (
+                "gate_4_question_expansion_complete_recommendation_stop"
+                if is_question_expansion else "gate_4_complete_recommendation_stop"
+            ),
             "completed_gates": [1, 2, 3, 4],
             "not_started_gates": [5, 6],
             "reason": (
-                "The explicitly authorized limited Gate 4 pilot completed, but neither "
-                "activation site met the held-out separation and split-half stability criteria."
+                f"The explicitly authorized {len(question_ids)}-question Gate 4 pilot completed, "
+                "but neither activation site met the held-out separation and split-half "
+                "stability criteria."
             ),
             "gate_4_recommendation": gate4_decision["recommendation"],
-            "target_model_generations": 26,
-            "successful_judgments": 24,
-            "failed_infrastructure_judge_attempts": 6,
+            "question_ids": question_ids,
+            "saved_target_model_generations": response_count,
+            "reused_target_model_generations": reused_generations,
+            "new_target_model_generations": response_count - reused_generations,
+            "successful_judgments": judge_summary["persona_judgments"],
+            "new_successful_judgments": judge_summary["new_judgments_this_command"],
+            "failed_infrastructure_judge_attempts": failed_attempts,
             "checksum_entries": len(rows),
         }
     else:
@@ -2170,6 +2310,153 @@ is to review prompt/question dependence before spending on more personas.
     print(json.dumps({"status": "gate4-report-created", "path": str(args.report_dir)}, sort_keys=True))
 
 
+def command_report_question_expansion(args: argparse.Namespace) -> None:
+    if args.report_dir.exists():
+        raise FileExistsError(f"Refusing to overwrite report directory: {args.report_dir}")
+    root = gate4_dir(args.run_dir)
+    analysis = root / "analysis"
+    decision = json.loads((analysis / "gate-decision.json").read_text())
+    judge = json.loads((root / "judge-summary.json").read_text())
+    extraction = json.loads((root / "extraction-summary.json").read_text())
+    reuse = json.loads((root / "question-expansion-reuse-provenance.json").read_text())
+    manifest = pd.read_csv(root / "prepare-personas/persona-manifest.csv")
+    stability = pd.read_csv(analysis / "stability.csv")
+    heldout = pd.read_csv(analysis / "heldout-separation.csv")
+    pca = pd.read_csv(analysis / "pca-metrics.csv")
+    question_rows = manifest[["question_id", "question"]].drop_duplicates().sort_values("question_id")
+    question_lines = [f"- {row.question_id}: {row.question}" for row in question_rows.itertuples(index=False)]
+
+    split = stability[stability.metric == "split_half_question_cosine"][
+        ["activation_site", "layer", "value"]
+    ].rename(columns={"value": "split_half_cosine"})
+    pairwise = stability[stability.metric == "pairwise_question_cosine"]
+    lopo = stability[stability.metric == "leave_one_persona_out_cosine"]
+    loqo = stability[stability.metric == "leave_one_question_out_cosine"]
+    heldout_summary = heldout.groupby(["activation_site", "layer"], as_index=False)[
+        ["auroc", "balanced_accuracy"]
+    ].mean().rename(columns={"auroc": "heldout_auroc_mean", "balanced_accuracy": "heldout_balanced_accuracy_mean"})
+    selected = pca[pca.layer.isin([12, 16])].merge(
+        split, on=["activation_site", "layer"]
+    ).merge(heldout_summary, on=["activation_site", "layer"])
+    args.report_dir.mkdir(parents=True)
+    selected.to_csv(args.report_dir / "selected-layer-summary.csv", index=False)
+    table_lines = [
+        f"| {row.activation_site} | {row.layer} | {row.split_half_cosine:.3f} | "
+        f"{row.heldout_auroc_mean:.3f} | {row.heldout_balanced_accuracy_mean:.3f} | "
+        f"{row.axis_pc1_cosine:.3f} |"
+        for row in selected.itertuples(index=False)
+    ]
+    site_lines = []
+    for site in ["pre_mlp", "block_output"]:
+        site_split = split[split.activation_site == site].split_half_cosine
+        site_pairwise = pairwise[pairwise.activation_site == site].value
+        site_lopo = lopo[lopo.activation_site == site].value
+        site_loqo = loqo[loqo.activation_site == site].value
+        site_heldout = heldout[heldout.activation_site == site]
+        site_lines.append(
+            f"| {site} | {site_split.min():.3f}–{site_split.max():.3f} | "
+            f"{site_pairwise.median():.3f} | {site_loqo.min():.3f} | {site_lopo.min():.3f} | "
+            f"{site_heldout.auroc.mean():.3f} | {site_heldout.balanced_accuracy.mean():.3f} |"
+        )
+    copy_paths = [
+        root / "prepare-personas/persona-manifest.csv",
+        root / "prepare-personas/upstream-provenance.json",
+        root / "prepare-personas/generation-settings.json",
+        root / "prepare-personas/user-override.json",
+        root / "question-expansion-reuse-provenance.json",
+        root / "generation-complete-summary.json",
+        root / "judge-scores.csv",
+        root / "judge-summary.json",
+        root / "inclusion-manifest.csv",
+        root / "manual-review-summary.json",
+        root / "extraction-summary.json",
+        analysis / "gate-decision.json",
+        analysis / "pca-metrics.csv",
+        analysis / "heldout-separation.csv",
+        analysis / "stability.csv",
+        analysis / "projection-distribution.csv",
+        analysis / "bootstrap-confidence.csv",
+        analysis / "role-axis-cosines.csv",
+        analysis / "principal-angles.csv",
+    ]
+    for source in copy_paths:
+        shutil.copy2(source, args.report_dir / source.name)
+
+    readme = f"""# GPT-OSS-20B Assistant Axis six-question expansion
+
+Date: 2026-08-27
+
+## Outcome
+
+The explicitly authorized question expansion is complete. It retained the same
+12-persona panel, reused the original 26 generations exactly, and added four
+official extraction questions (52 new generations). The result remains
+**stop**: neither activation site reached the preregistered 0.80 split-half
+cosine at any tested layer.
+
+This result argues against expanding to 50 personas under the current prompt
+design. Question choice, rather than persona sampling, remains the dominant
+source of instability.
+
+## Questions and preregistered split
+
+{chr(10).join(question_lines)}
+
+- Half A: {decision['question_split_halves'][0]}
+- Half B: {decision['question_split_halves'][1]}
+
+The four added questions were selected before generation to cover factual
+explanation, interpersonal support, unfamiliar-tool problem solving, and
+workplace ethical pressure.
+
+## Compute and inclusion
+
+- Saved responses: 78 ({reuse['reused_generation_count']} reused, {reuse['new_generation_count']} new)
+- Persona judgments: {judge['persona_judgments']} ({judge['new_judgments_this_command']} new)
+- Judge parse failures: {judge['parse_failures']}
+- Included persona responses: {judge['accepted_response_count']}/72
+- Personas represented after filtering: {judge['personas_with_accepted_response']}/12
+- Included activation records: {extraction['included_responses']}
+- Manual review: 28 selected cases; zero score overrides or boundary failures
+
+## Stability summary across layers 8–20
+
+| Site | Three-vs-three cosine range | Median pairwise-question cosine | Min leave-one-question-out | Min leave-one-persona-out | Mean held-out AUROC | Mean held-out balanced accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+{chr(10).join(site_lines)}
+
+The three-question-vs-three-question comparison improved over the original
+single-question comparison, but remained below 0.80. Low pairwise-question
+cosines show that the individual question axes are not measuring one common
+direction. High leave-one-persona-out stability shows that adding personas is
+unlikely to repair that disagreement.
+
+## Selected layers
+
+| Site | Layer | Three-vs-three cosine | Held-out AUROC | Held-out balanced accuracy | Axis–PC1 cosine |
+| --- | ---: | ---: | ---: | ---: | ---: |
+{chr(10).join(table_lines)}
+
+## Recommendation
+
+Do not expand to 50 or 250 personas yet. First revise the estimator or identify
+a semantically coherent question subset, then validate that choice on untouched
+questions. Gate 5 CoT-Forgery generation and steering remain unstarted.
+
+## Reproducibility
+
+- Persistent run: `{args.run_dir}`
+- Source two-question run: `{reuse['source_run']}`
+- Official Assistant Axis commit: `{ASSISTANT_AXIS_COMMIT}`
+- Model revision: `{MODEL_REVISION}`
+- Generation: greedy, seed 123, lowest reasoning effort, 256-token cap
+- Activation sites: pre-MLP and decoder-block output, layers 8–20
+- Response statistic: final-channel token mean, accumulated and saved float32
+"""
+    (args.report_dir / "README.md").write_text(readme, encoding="utf-8")
+    print(json.dumps({"status": "question-expansion-report-created", "path": str(args.report_dir)}, sort_keys=True))
+
+
 def command_hook_smoke(args: argparse.Namespace) -> None:
     temporary, final = atomic_stage_dir(args.run_dir, "gate-2-hook-smoke")
     if not (args.run_dir / "gate-1-environment").is_dir():
@@ -2310,11 +2597,17 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
     for name in [
-        "inventory", "hook-smoke", "role-probes", "prepare-personas",
+        "inventory", "hook-smoke", "role-probes",
         "extract", "analyze", "finalize",
     ]:
         child = subparsers.add_parser(name)
         child.add_argument("--run-dir", type=Path, required=True)
+    prepare = subparsers.add_parser("prepare-personas")
+    prepare.add_argument("--run-dir", type=Path, required=True)
+    prepare.add_argument("--question-ids", type=parse_question_ids, default=QUESTION_IDS)
+    seed_expansion = subparsers.add_parser("seed-question-expansion")
+    seed_expansion.add_argument("--source-run-dir", type=Path, required=True)
+    seed_expansion.add_argument("--run-dir", type=Path, required=True)
     generate = subparsers.add_parser("generate")
     generate.add_argument("--run-dir", type=Path, required=True)
     generate.add_argument("--scope", choices=["micro", "complete"], required=True)
@@ -2328,6 +2621,9 @@ def parse_args() -> argparse.Namespace:
     report_gate4 = subparsers.add_parser("report-gate4")
     report_gate4.add_argument("--run-dir", type=Path, required=True)
     report_gate4.add_argument("--report-dir", type=Path, required=True)
+    report_questions = subparsers.add_parser("report-question-expansion")
+    report_questions.add_argument("--run-dir", type=Path, required=True)
+    report_questions.add_argument("--report-dir", type=Path, required=True)
     return parser.parse_args()
 
 
@@ -2341,6 +2637,8 @@ def main() -> int:
         command_role_probes(args)
     elif args.command == "prepare-personas":
         command_prepare_personas(args)
+    elif args.command == "seed-question-expansion":
+        command_seed_question_expansion(args)
     elif args.command == "generate":
         command_generate_personas(args)
     elif args.command == "score":
@@ -2355,6 +2653,8 @@ def main() -> int:
         command_report(args)
     elif args.command == "report-gate4":
         command_report_gate4(args)
+    elif args.command == "report-question-expansion":
+        command_report_question_expansion(args)
     return 0
 
 
